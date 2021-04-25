@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--30s扫描一次配置文件-->
+<configuration scan="true" scanPeriod="30 seconds">
+	<!-- 定义日志目录 -->
+	<property name="logHome" value="./logs/sdk-demo"/>
+	<property name="appName" value="sdk-demo"/>
+
+	<!-- 控制台日志：输出全部日志到控制台 -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<!--定义控制台输出格式-->
+		<encoder charset="utf-8">
+			<pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${logHome}/${appName}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${logHome}/${appName}-%d{yyyyMMdd}.log.%i</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>500MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%msg%n
+			</Pattern>
+		</layout>
+	</appender>
+
+	<appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+		<queueSize>1024</queueSize>
+		<appender-ref ref="FILE" />
+	</appender>
+
+	<root level="DEBUG">
+		<appender-ref ref="STDOUT"/>
+		<appender-ref ref="ASYNC"/>
+	</root>
+
+<!--	<logger name="ifly.open.cmp.dao" level="DEBUG"/>-->
+<!--	<logger name="cn.xfyun.open.showdata.mapper" level="DEBUG"/>-->
+</configuration>
