@@ -28,7 +28,7 @@
             <groupId>cn.xfyun</groupId>
             <artifactId>websdk-java-speech</artifactId>
             <!--请选择当前最稳定版本-->
-            <version>1.0.1</version>
+            <version>1.0.4</version>
         </dependency>
 
         <dependency>

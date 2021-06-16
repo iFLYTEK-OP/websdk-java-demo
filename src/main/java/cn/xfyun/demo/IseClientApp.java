@@ -2,7 +2,7 @@ package cn.xfyun.demo;
 
 import cn.xfyun.api.IseClient;
 import cn.xfyun.config.PropertiesConfig;
-import cn.xfyun.model.ise.IseResponseData;
+import cn.xfyun.model.response.ise.IseResponseData;
 import cn.xfyun.service.ise.AbstractIseWebSocketListener;
 import okhttp3.Response;
 import okhttp3.WebSocket;
