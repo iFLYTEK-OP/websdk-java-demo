@@ -20,6 +20,7 @@ public class PropertiesConfig {
     private static final String iseAppId;
     private static final String iseApiSecret;
     private static final String iseApiKey;
+    private static final String ltpKey;
 
     static {
         Properties properties = new Properties();
@@ -39,6 +40,8 @@ public class PropertiesConfig {
         iseAppId = properties.getProperty("iseAppId");
         iseApiSecret = properties.getProperty("iseApiSecret");
         iseApiKey = properties.getProperty("iseApiKey");
+
+        ltpKey = properties.getProperty("ltpKey");
     }
 
     public static String getAppId() {
@@ -71,5 +74,9 @@ public class PropertiesConfig {
 
     public static String getIseApiKey() {
         return iseApiKey;
+    }
+
+    public static String getLtpKey() {
+        return ltpKey;
     }
 }
