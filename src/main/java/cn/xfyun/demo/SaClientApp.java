@@ -1,7 +1,7 @@
 package cn.xfyun.demo;
 
 import cn.xfyun.config.PropertiesConfig;
-import cn.xfyun.api.SaClinet;
+import cn.xfyun.api.SaClient;
 /**
  * @author mqgao
  * @version 1.0
@@ -14,8 +14,8 @@ public class SaClientApp {
 
 
 	public static void main(String[] args) throws Exception{
-		SaClinet saClinet = new SaClinet.Builder(appId, apiKey)
+		SaClient saClient = new SaClient.Builder(appId, apiKey)
 				.build();
-		System.out.println(saClinet.send("你好啊"));
+		System.out.println(saClient.send("你好啊"));
 	}
 }
