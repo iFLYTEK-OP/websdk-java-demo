@@ -2,7 +2,6 @@ package cn.xfyun.demo;
 
 import cn.xfyun.api.TtsClient;
 import cn.xfyun.config.PropertiesConfig;
-import cn.xfyun.exception.TtsException;
 import cn.xfyun.model.response.TtsResponse;
 import cn.xfyun.service.tts.AbstractTtsWebSocketListener;
 import okhttp3.Response;
@@ -49,7 +48,7 @@ public class TtsClientApp {
                     System.out.println(ttsResponse.toString());
                 }
             });
-        }catch (TtsException e){
+        }catch (Exception e){
             System.out.println(e.getMessage());
             System.out.println("错误码查询链接：https://www.xfyun.cn/document/error-code");
         }

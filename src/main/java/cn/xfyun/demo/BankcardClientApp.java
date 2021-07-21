@@ -1,8 +1,7 @@
 package cn.xfyun.demo;
 
-import cn.xfyun.api.QbhClient;
+import cn.xfyun.api.BankcardClient;
 import cn.xfyun.config.PropertiesConfig;
-import cn.xfyun.exception.HttpException;
 import sun.misc.IOUtils;
 
 import java.io.File;
@@ -10,35 +9,38 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.Base64;
 
 /**
- * @author: <flhong2@iflytek.com>
- * @description: 歌曲识别
- * @version: v1.0
- * @create: 2021-06-11 10:08
- **/
-public class QbhClientApp {
+ *     银行卡识别
+ *
+ * @author mqgao
+ * @version 1.0
+ * @date 2021/7/21 11:27
+ */
+public class BankcardClientApp {
 
     private static final String appId = PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
 
-    private static String filePath = "audio/audio_qbh.wav";
+    private static String filePath = "xxxxxxx";
     private static String resourcePath;
 
     static {
         try {
-            resourcePath = QbhClientApp.class.getResource("/").toURI().getPath();
+            resourcePath = BankcardClientApp.class.getResource("/").toURI().getPath();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
     }
 
-    public static void main(String[] args) throws IOException, HttpException {
-        QbhClient qbhClientApp = new QbhClient.Builder(appId, apiKey)
+    public static void main(String[] args) throws IOException {
+        BankcardClient client = new BankcardClient
+                .Builder(appId, apiKey)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] bytes = IOUtils.readFully(inputStream, -1, true);
-        String result = qbhClientApp.send(bytes);
-        System.out.println("返回结果: " + result);
+        String imageBase64 = Base64.getEncoder().encodeToString(bytes);
+        System.out.println(client.bankcard(imageBase64));
     }
 }

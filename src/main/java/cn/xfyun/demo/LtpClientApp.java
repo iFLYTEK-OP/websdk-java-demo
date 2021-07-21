@@ -1,8 +1,8 @@
 package cn.xfyun.demo;
 
 import cn.xfyun.api.LtpClient;
+import cn.xfyun.config.LtpFunctionEnum;
 import cn.xfyun.config.PropertiesConfig;
-import cn.xfyun.model.response.ltp.LtpResponse;
 
 /**
  * @author yingpeng
@@ -15,11 +15,10 @@ public class LtpClientApp {
 
     public static void main(String[] args) {
         try {
-            LtpClient ltpClient = new LtpClient.Builder(APP_ID, LTP_KEY)
-                    .func("cws")
+            LtpClient ltpClient = new LtpClient.Builder(APP_ID, LTP_KEY, LtpFunctionEnum.KE)
                     .build();
-            LtpResponse response = ltpClient.send("我来自北方");
-            System.out.println(response.toString());
+            String response = ltpClient.send("我来自北方");
+            System.out.println(response);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             System.out.println("错误码查询链接：https://www.xfyun.cn/document/error-code");

@@ -16,9 +16,9 @@
 
     <repositories>
         <repository>
-            <id>mvn-central</id>
-            <name>mvn-central</name>
-            <url>https://repo1.maven.org/maven2/</url>
+            <id>staging</id>
+            <name>staging</name>
+            <url>https://s01.oss.sonatype.org/content/repositories/cnxfyun-1079</url>
             <layout>default</layout>
         </repository>
     </repositories>
@@ -28,7 +28,28 @@
             <groupId>cn.xfyun</groupId>
             <artifactId>websdk-java-speech</artifactId>
             <!--请选择当前最稳定版本-->
-            <version>1.0.4</version>
+            <version>1.0.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.xfyun</groupId>
+            <artifactId>websdk-java-nlp</artifactId>
+            <!--请选择当前最稳定版本-->
+            <version>1.0.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.xfyun</groupId>
+            <artifactId>websdk-java-ocr</artifactId>
+            <!--请选择当前最稳定版本-->
+            <version>1.0.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.xfyun</groupId>
+            <artifactId>websdk-java-face-detector</artifactId>
+            <!--请选择当前最稳定版本-->
+            <version>1.0.5</version>
         </dependency>
 
         <dependency>
