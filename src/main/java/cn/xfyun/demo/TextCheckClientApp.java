@@ -18,11 +18,11 @@ public class TextCheckClientApp {
 
 
 	public static void main(String[] args) throws Exception{
-		TextCheckClient checkClient = new TextCheckClient
-				.Builder(appId, apiSecret, apiKey)
+		TextCheckClient client = new TextCheckClient
+				.Builder(appId, apiKey, apiSecret)
 				.build();
-		String result = checkClient.send("画蛇天足");
-		System.out.println("返回结果: " + result);
+		System.out.println("请求地址：" + client.getHostUrl());
+		System.out.println(client.send("画蛇天足"));
 	}
 
 }

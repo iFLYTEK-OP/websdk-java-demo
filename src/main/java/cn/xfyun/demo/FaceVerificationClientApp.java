@@ -34,6 +34,7 @@ public class FaceVerificationClientApp {
     }
 
     public static void main(String[] args) throws Exception {
+        // 人脸比对sensetime
         FaceVerificationClient client = new FaceVerificationClient
                 .Builder(appId, apiKey)
                 .build();
@@ -44,7 +45,7 @@ public class FaceVerificationClientApp {
         InputStream inputStream2 = new FileInputStream(new File(resourcePath + filePath2));
         byte[] bytes2 = IOUtils.readFully(inputStream2, -1, true);
         String imageBase642 = Base64.getEncoder().encodeToString(bytes2);
-
+        System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.compareFace(imageBase641, imageBase642));
     }
 }

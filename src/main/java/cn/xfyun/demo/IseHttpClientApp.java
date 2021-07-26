@@ -37,12 +37,14 @@ public class IseHttpClientApp {
     }
 
     public static void main(String[] args) throws IOException {
-        IseHttpClient iseHttpClient =
+        // 语音评测（普通版）
+        IseHttpClient client =
                 new IseHttpClient.Builder(appId, apiKey, IseAueEnum.RAW, IseLanguageEnum.ZH_CN, IseCategoryEnum.READ_SENTENCE)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] bytes = IOUtils.readFully(inputStream, -1, true);
-        String result = iseHttpClient.send(Base64.getEncoder().encodeToString(bytes), "今天天气怎么样？");
+        String result = client.send(Base64.getEncoder().encodeToString(bytes), "今天天气怎么样？");
+        System.out.println("请求地址：" + client.getHostUrl());
         System.out.println("返回结果: " + result);
     }
 

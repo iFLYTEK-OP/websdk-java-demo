@@ -42,6 +42,7 @@ public class TupApiClientApp {
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] bytes = IOUtils.readFully(inputStream, -1, true);
+        System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.recognition("测试", bytes));
     }
 }

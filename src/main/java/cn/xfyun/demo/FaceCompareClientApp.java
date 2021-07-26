@@ -34,6 +34,7 @@ public class FaceCompareClientApp {
     }
 
     public static void main(String[] args) throws Exception {
+        // 人脸比对
         FaceCompareClient client = new FaceCompareClient
                 .Builder(appId, apiKey, apiSecret)
                 .build();
@@ -44,7 +45,7 @@ public class FaceCompareClientApp {
         InputStream inputStream1 = new FileInputStream(new File(resourcePath + filePath2));
         byte[] bytes1 = IOUtils.readFully(inputStream1, -1, true);
         String imageBase642 = Base64.getEncoder().encodeToString(bytes1);
-
+        System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.faceCompare(imageBase641, "jpg", imageBase642, "jpg"));
     }
 }

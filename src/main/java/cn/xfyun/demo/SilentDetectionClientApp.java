@@ -33,12 +33,14 @@ public class SilentDetectionClientApp {
     }
 
     public static void main(String[] args) throws Exception {
+        // 活体检查sensetime
         SilentDetectionClient client = new SilentDetectionClient
                 .Builder(appId, apiKey)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] bytes = IOUtils.readFully(inputStream, -1, true);
         String audioBase64 = Base64.getEncoder().encodeToString(bytes);
+        System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.silentDetection(audioBase64));
     }
 }

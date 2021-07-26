@@ -18,7 +18,7 @@
         <repository>
             <id>staging</id>
             <name>staging</name>
-            <url>https://s01.oss.sonatype.org/content/repositories/cnxfyun-1079</url>
+            <url>https://s01.oss.sonatype.org/content/repositories/cnxfyun-1080</url>
             <layout>default</layout>
         </repository>
     </repositories>
@@ -76,6 +76,14 @@
                     <source>8</source>
                     <target>8</target>
                     <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19.1</version>
+                <configuration>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
         </plugins>
