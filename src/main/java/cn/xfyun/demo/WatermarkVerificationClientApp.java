@@ -33,6 +33,7 @@ public class WatermarkVerificationClientApp {
     }
 
     public static void main(String[] args) throws Exception {
+        //人脸水印照比对
         WatermarkVerificationClient client = new WatermarkVerificationClient
                 .Builder(appId, apiKey)
                 .build();
@@ -43,6 +44,7 @@ public class WatermarkVerificationClientApp {
         InputStream inputStream2 = new FileInputStream(new File(resourcePath + filePath2));
         byte[] bytes2 = IOUtils.readFully(inputStream2, -1, true);
         String imageBase642 = Base64.getEncoder().encodeToString(bytes2);
+        System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.compare(imageBase641, imageBase642));
     }
 }

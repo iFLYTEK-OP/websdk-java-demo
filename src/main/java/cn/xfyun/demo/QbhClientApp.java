@@ -33,12 +33,14 @@ public class QbhClientApp {
         }
     }
 
-    public static void main(String[] args) throws IOException, HttpException {
-        QbhClient qbhClientApp = new QbhClient.Builder(appId, apiKey)
+    public static void main(String[] args) throws IOException {
+        // 歌曲识别
+        QbhClient client = new QbhClient.Builder(appId, apiKey)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] bytes = IOUtils.readFully(inputStream, -1, true);
-        String result = qbhClientApp.send(bytes);
+        String result = client.send(bytes);
+        System.out.println("请求地址：" + client.getHostUrl());
         System.out.println("返回结果: " + result);
     }
 }

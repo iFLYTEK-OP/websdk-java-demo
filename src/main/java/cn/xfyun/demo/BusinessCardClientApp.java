@@ -30,12 +30,14 @@ public class BusinessCardClientApp {
     }
 
     public static void main(String[] args) throws IOException {
+        // 名片识别
         BusinessCardClient client = new BusinessCardClient
                 .Builder(appId, apiKey)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] bytes = IOUtils.readFully(inputStream, -1, true);
         String imageBase64 = Base64.getEncoder().encodeToString(bytes);
+        System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.businessCard(imageBase64));
     }
 }

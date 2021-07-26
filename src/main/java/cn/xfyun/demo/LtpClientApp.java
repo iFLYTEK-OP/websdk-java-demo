@@ -15,9 +15,10 @@ public class LtpClientApp {
 
     public static void main(String[] args) {
         try {
-            LtpClient ltpClient = new LtpClient.Builder(APP_ID, LTP_KEY, LtpFunctionEnum.KE)
+            LtpClient client = new LtpClient.Builder(APP_ID, LTP_KEY, LtpFunctionEnum.KE)
                     .build();
-            String response = ltpClient.send("我来自北方");
+            String response = client.send("我来自北方");
+            System.out.println("请求地址：" + client.getHostUrl());
             System.out.println(response);
         } catch (Exception e) {
             System.out.println(e.getMessage());

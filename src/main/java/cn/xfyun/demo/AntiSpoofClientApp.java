@@ -33,12 +33,14 @@ public class AntiSpoofClientApp {
     }
 
     public static void main(String[] args) throws Exception {
+        // 静默活体检测
         AntiSpoofClient client = new AntiSpoofClient
                 .Builder(appId, apiKey, apiSecret)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] bytes = IOUtils.readFully(inputStream, -1, true);
         String imageBase64 = Base64.getEncoder().encodeToString(bytes);
+        System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.faceContrast(imageBase64, "jpg"));
     }
 }
