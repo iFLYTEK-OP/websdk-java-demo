@@ -19,7 +19,7 @@ public class PlaceRecClientApp {
 
     static {
         try {
-            resourcePath = SilentDetectionClientApp.class.getResource("/").toURI().getPath();
+            resourcePath = PlaceRecClientApp.class.getResource("/").toURI().getPath();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
