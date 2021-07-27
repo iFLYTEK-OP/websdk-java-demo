@@ -10,8 +10,8 @@ import java.util.Base64;
 
 public class PlaceRecClientApp {
 
-    private static final String APP_ID = PropertiesConfig.getAppId();
-    private static final String LTP_KEY = PropertiesConfig.getLtpKey();
+    private static final String appId = PropertiesConfig.getAppId();
+    private static final String apiKey = PropertiesConfig.getApiKey();
     private static final String apiSecret = PropertiesConfig.getApiSecret();
 
     private static String filePath = "xxxxxxxx";
