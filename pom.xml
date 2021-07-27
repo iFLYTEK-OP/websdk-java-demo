@@ -14,15 +14,6 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>mvn-repo</id>
-            <name>mvn-repo</name>
-            <url>https://artifacts.iflytek.com/artifactory/mvn-repo/</url>
-            <layout>default</layout>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>cn.xfyun</groupId>
