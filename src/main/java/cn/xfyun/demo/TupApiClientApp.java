@@ -25,7 +25,7 @@ public class TupApiClientApp {
 
     static {
         try {
-            resourcePath = SilentDetectionClientApp.class.getResource("/").toURI().getPath();
+            resourcePath = TupApiClientApp.class.getResource("/").toURI().getPath();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

@@ -1,6 +1,5 @@
 package cn.xfyun.demo;
 
-import cn.xfyun.api.FaceDetectClient;
 import cn.xfyun.api.SilentDetectionClient;
 import cn.xfyun.config.PropertiesConfig;
 import sun.misc.IOUtils;

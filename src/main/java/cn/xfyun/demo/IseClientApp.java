@@ -32,7 +32,7 @@ public class IseClientApp {
 
     static {
         try {
-            resourcePath = IatClientApp.class.getResource("/").toURI().getPath();
+            resourcePath = IseClientApp.class.getResource("/").toURI().getPath();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

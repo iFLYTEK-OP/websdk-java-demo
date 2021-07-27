@@ -1,3 +1,5 @@
+package cn.xfyun.demo;
+
 import cn.xfyun.api.PlaceRecClient;
 import cn.xfyun.config.PropertiesConfig;
 import sun.misc.IOUtils;
@@ -33,6 +35,6 @@ public class PlaceRecClientApp {
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] imageByteArray = IOUtils.readFully(inputStream, -1, true);
         String imageBase64 = Base64.getEncoder().encodeToString(imageByteArray);
-        System.out.println(client.send( imageBase64, "jpg"));
+        System.out.println(client.send(imageBase64, "jpg"));
     }
 }

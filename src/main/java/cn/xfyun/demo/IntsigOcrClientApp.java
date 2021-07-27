@@ -1,6 +1,5 @@
 package cn.xfyun.demo;
 
-import cn.xfyun.api.BusinessCardClient;
 import cn.xfyun.api.IntsigOcrClient;
 import cn.xfyun.config.IntsigRecgEnum;
 import cn.xfyun.config.PropertiesConfig;

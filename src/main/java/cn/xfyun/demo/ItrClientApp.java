@@ -1,15 +1,12 @@
 package cn.xfyun.demo;
 
-import cn.xfyun.api.IntsigOcrClient;
 import cn.xfyun.api.ItrClient;
-import cn.xfyun.config.IntsigRecgEnum;
 import cn.xfyun.config.ItrEntEnum;
 import cn.xfyun.config.PropertiesConfig;
 import sun.misc.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Base64;
