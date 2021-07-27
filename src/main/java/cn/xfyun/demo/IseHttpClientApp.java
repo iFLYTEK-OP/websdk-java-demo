@@ -30,7 +30,7 @@ public class IseHttpClientApp {
 
     static {
         try {
-            resourcePath = QbhClientApp.class.getResource("/").toURI().getPath();
+            resourcePath = IseHttpClientApp.class.getResource("/").toURI().getPath();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
