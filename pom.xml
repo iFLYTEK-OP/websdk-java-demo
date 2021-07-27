@@ -14,42 +14,29 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>staging</id>
-            <name>staging</name>
-            <url>https://s01.oss.sonatype.org/content/repositories/cnxfyun-1080</url>
-            <layout>default</layout>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>cn.xfyun</groupId>
             <artifactId>websdk-java-speech</artifactId>
-            <!--请选择当前最稳定版本-->
-            <version>1.0.5</version>
+            <version>2.0.0</version>
         </dependency>
 
         <dependency>
             <groupId>cn.xfyun</groupId>
             <artifactId>websdk-java-nlp</artifactId>
-            <!--请选择当前最稳定版本-->
-            <version>1.0.5</version>
+            <version>2.0.0</version>
         </dependency>
 
         <dependency>
             <groupId>cn.xfyun</groupId>
             <artifactId>websdk-java-ocr</artifactId>
-            <!--请选择当前最稳定版本-->
-            <version>1.0.5</version>
+            <version>2.0.0</version>
         </dependency>
 
         <dependency>
             <groupId>cn.xfyun</groupId>
             <artifactId>websdk-java-face-detector</artifactId>
-            <!--请选择当前最稳定版本-->
-            <version>1.0.5</version>
+            <version>2.0.0</version>
         </dependency>
 
         <dependency>
@@ -72,6 +59,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
                 <configuration>
                     <source>8</source>
                     <target>8</target>
