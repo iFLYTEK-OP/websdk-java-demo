@@ -10,9 +10,9 @@ import java.net.URISyntaxException;
 import java.util.Base64;
 
 
-public class LtpClientApp {
+public class ImageRecClientApp {
 
-    private static final String APP_ID = PropertiesConfig.getAppId();
+    private static final String appId= PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
   
     private static String filePath = "xxxxxxxx";
@@ -20,7 +20,7 @@ public class LtpClientApp {
 
     static {
         try {
-            resourcePath = SilentDetectionClientApp.class.getResource("/").toURI().getPath();
+            resourcePath = ImageRecClientApp.class.getResource("/").toURI().getPath();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
