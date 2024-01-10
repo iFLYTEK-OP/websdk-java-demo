@@ -10,7 +10,7 @@ import cn.xfyun.model.ThemeResponse;
 import java.util.UUID;
 
 /**
- * 志文PPT的接口demo
+ * 智文PPT的接口demo
  *
  * @author junzhang27
  */
