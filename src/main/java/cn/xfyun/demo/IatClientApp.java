@@ -25,7 +25,7 @@ public class IatClientApp {
     private static final String apiKey = PropertiesConfig.getApiKey();
     private static final String apiSecret = PropertiesConfig.getApiSecret();
 
-    private static String filePath = "audio/20210330141636536.pcm";
+    private static String filePath = "audio/iat_pcm_16k.pcm";
     private static String resourcePath;
 
     static {
