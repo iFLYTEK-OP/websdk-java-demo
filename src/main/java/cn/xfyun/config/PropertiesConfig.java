@@ -15,12 +15,8 @@ public class PropertiesConfig {
     private static final String appId;
     private static final String apiKey;
     private static final String apiSecret;
-    private static final String secretKey;
-    private static final String lfasrAppId;
-    private static final String iseAppId;
-    private static final String iseApiSecret;
-    private static final String iseApiKey;
-    private static final String ltpKey;
+    private static final String rtaAPIKey;
+    private static final String lfasrSecretKey;
 
     static {
         Properties properties = new Properties();
@@ -34,26 +30,14 @@ public class PropertiesConfig {
         apiSecret = properties.getProperty("apiSecret");
         apiKey = properties.getProperty("apiKey");
 
-        lfasrAppId = properties.getProperty("lfasrAppId");
-        secretKey = properties.getProperty("secretKey");
 
-        iseAppId = properties.getProperty("iseAppId");
-        iseApiSecret = properties.getProperty("iseApiSecret");
-        iseApiKey = properties.getProperty("iseApiKey");
-
-        ltpKey = properties.getProperty("ltpKey");
+        rtaAPIKey = properties.getProperty("rtaAPIKey");
+        
+        lfasrSecretKey = properties.getProperty("lfasrSecretKey");
     }
 
     public static String getAppId() {
         return appId;
-    }
-
-    public static String getSecretKey() {
-        return secretKey;
-    }
-
-    public static String getLfasrAppId() {
-        return lfasrAppId;
     }
 
     public static String getApiKey() {
@@ -64,19 +48,11 @@ public class PropertiesConfig {
         return apiSecret;
     }
 
-    public static String getIseAppId() {
-        return iseAppId;
+    public static String getRtaAPIKey() {
+        return rtaAPIKey;
     }
 
-    public static String getIseApiSecret() {
-        return iseApiSecret;
-    }
-
-    public static String getIseApiKey() {
-        return iseApiKey;
-    }
-
-    public static String getLtpKey() {
-        return ltpKey;
+    public static String getLfasrSecretKey() {
+        return lfasrSecretKey;
     }
 }

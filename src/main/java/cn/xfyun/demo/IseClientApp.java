@@ -23,9 +23,9 @@ import java.util.Base64;
  **/
 public class IseClientApp {
 
-    private static final String appId = PropertiesConfig.getIseAppId();
-    private static final String apiKey = PropertiesConfig.getIseApiKey();
-    private static final String apiSecret = PropertiesConfig.getIseApiSecret();
+    private static final String appId = PropertiesConfig.getAppId();
+    private static final String apiKey = PropertiesConfig.getApiKey();
+    private static final String apiSecret = PropertiesConfig.getApiSecret();
 
     private static String filePath = "audio/cn/read_sentence_cn.pcm";
     private static String resourcePath;

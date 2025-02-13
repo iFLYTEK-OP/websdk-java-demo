@@ -23,8 +23,8 @@ import java.util.concurrent.TimeUnit;
 public class LfasrClientApp {
     private static final Logger logger = LoggerFactory.getLogger(LfasrClient.class);
 
-    private static final String APP_ID = PropertiesConfig.getLfasrAppId();
-    private static final String SECRET_KEY = PropertiesConfig.getSecretKey();
+    private static final String APP_ID = PropertiesConfig.getAppId();
+    private static final String SECRET_KEY = PropertiesConfig.getLfasrSecretKey();
     private static String AUDIO_FILE_PATH;
 
     static {

@@ -1,5 +1,6 @@
 package cn.xfyun.demo;
 
+import cn.xfyun.config.PropertiesConfig;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -24,6 +25,9 @@ import java.util.concurrent.CountDownLatch;
  * @date 2021/4/13 10:21
  */
 public class RtasrClientApp {
+
+	private static final String APP_ID = PropertiesConfig.getAppId();
+	private static final String API_KEY = PropertiesConfig.getRtaAPIKey();
 
 	private static String filePath = "audio/rtasr.pcm";
 	private static String resourcePath;
@@ -57,7 +61,7 @@ public class RtasrClientApp {
 	// 1. 使用文件流发送
 	public static void sendByInputStream() throws SignatureException, InterruptedException, FileNotFoundException {
 		RtasrClient client = new RtasrClient.Builder()
-				.signature("xxxxx", "xxxxxxxxx").build();
+				.signature(APP_ID, API_KEY).build();
 		File file = new File(resourcePath + filePath);
 		FileInputStream inputStream = new FileInputStream(file);
 		CountDownLatch latch = new CountDownLatch(1);
@@ -95,7 +99,7 @@ public class RtasrClientApp {
 	// 2. 使用字节数组发送
 	public static void sendByByte() throws SignatureException, InterruptedException, IOException {
 		RtasrClient client = new RtasrClient.Builder()
-				.signature("xxxxx", "xxxxxxxxx").build();
+				.signature(APP_ID, API_KEY).build();
 
 		File file = new File(resourcePath + filePath);
 		FileInputStream inputStream = new FileInputStream(file);
@@ -135,7 +139,7 @@ public class RtasrClientApp {
 	//TODO: 方式3 使用仅创建一个webSocket连接，需要用户自己处理分段 和 发送结束标识。否则服务端返回的结果不完善
 	public static void send() throws InterruptedException {
 		RtasrClient rtasrClient = new RtasrClient.Builder()
-				.signature("xxxxx", "xxxxxxxxx").build();
+				.signature(APP_ID, API_KEY).build();
 		CountDownLatch latch = new CountDownLatch(1);
 		WebSocket webSocket = rtasrClient.newWebSocket(new AbstractRtasrWebSocketListener() {
 			@Override
