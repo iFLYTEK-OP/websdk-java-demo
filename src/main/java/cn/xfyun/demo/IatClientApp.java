@@ -19,6 +19,8 @@ import java.util.Date;
 
 /**
  * IAT( iFly Auto Transform ) 语音听写
+ * 1、APPID、APISecret、APIKey信息获取：https://console.xfyun.cn/services/iat
+ * 2、文档地址：https://www.xfyun.cn/doc/asr/voicedictation/API.html
  */
 public class IatClientApp {
     private static final String appId = PropertiesConfig.getAppId();

@@ -20,9 +20,8 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  *  ( Real-time ASR ) 实时语音转写
- * @author mqgao
- * @version 1.0
- * @date 2021/4/13 10:21
+ * 1、APPID、APIKey信息获取：https://console.xfyun.cn/services/rta
+ * 2、文档地址：https://www.xfyun.cn/doc/asr/rtasr/API.html
  */
 public class RtasrClientApp {
 
