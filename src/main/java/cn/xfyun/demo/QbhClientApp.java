@@ -2,9 +2,7 @@ package cn.xfyun.demo;
 
 import cn.xfyun.api.QbhClient;
 import cn.xfyun.config.PropertiesConfig;
-import cn.xfyun.exception.HttpException;
-import sun.misc.IOUtils;
-
+import cn.hutool.core.io.IoUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -38,7 +36,7 @@ public class QbhClientApp {
         QbhClient client = new QbhClient.Builder(appId, apiKey)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
-        byte[] bytes = IOUtils.readFully(inputStream, -1, true);
+        byte[] bytes = IoUtil.readBytes(inputStream);
         String result = client.send(bytes);
         System.out.println("请求地址：" + client.getHostUrl());
         System.out.println("返回结果: " + result);

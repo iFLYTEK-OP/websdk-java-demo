@@ -3,7 +3,7 @@ package cn.xfyun.demo;
 import cn.xfyun.api.ItrClient;
 import cn.xfyun.config.ItrEntEnum;
 import cn.xfyun.config.PropertiesConfig;
-import sun.misc.IOUtils;
+import cn.hutool.core.io.IoUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +41,7 @@ public class ItrClientApp {
                 .Builder(appId, apiKey, apiSecret, ItrEntEnum.MATH_ARITH)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
-        byte[] bytes = IOUtils.readFully(inputStream, -1, true);
+        byte[] bytes = IoUtil.readBytes(inputStream);
         String imageBase64 = Base64.getEncoder().encodeToString(bytes);
         System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.itr(imageBase64));

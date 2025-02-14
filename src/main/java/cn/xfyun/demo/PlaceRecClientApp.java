@@ -2,7 +2,7 @@ package cn.xfyun.demo;
 
 import cn.xfyun.api.PlaceRecClient;
 import cn.xfyun.config.PropertiesConfig;
-import sun.misc.IOUtils;
+import cn.hutool.core.io.IoUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,7 +33,7 @@ public class PlaceRecClientApp {
                 .Builder(appId, apiKey, apiSecret)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
-        byte[] imageByteArray = IOUtils.readFully(inputStream, -1, true);
+        byte[] imageByteArray = IoUtil.readBytes(inputStream);
         String imageBase64 = Base64.getEncoder().encodeToString(imageByteArray);
         System.out.println(client.send(imageBase64, "jpg"));
     }

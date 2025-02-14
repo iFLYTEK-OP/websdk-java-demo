@@ -3,7 +3,7 @@ package cn.xfyun.demo;
 import cn.xfyun.api.TupApiClient;
 import cn.xfyun.config.PropertiesConfig;
 import cn.xfyun.config.TupApiEnum;
-import sun.misc.IOUtils;
+import cn.hutool.core.io.IoUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +41,7 @@ public class TupApiClientApp {
                 .Builder(appId, apiKey, TupApiEnum.AGE)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
-        byte[] bytes = IOUtils.readFully(inputStream, -1, true);
+        byte[] bytes = IoUtil.readBytes(inputStream);
         System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.recognition("测试", bytes));
     }
