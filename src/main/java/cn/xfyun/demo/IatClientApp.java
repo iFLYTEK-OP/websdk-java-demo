@@ -85,7 +85,7 @@ public class IatClientApp {
                         System.out.println(sdf.format(dateBegin) + "开始");
                         System.out.println(sdf.format(dateEnd) + "结束");
                         System.out.println("耗时:" + (dateEnd.getTime() - dateBegin.getTime()) + "ms");
-                        System.out.println("最终识别结果" + finalResult.toString());
+                        System.out.println("最终识别结果 ==》" + finalResult.toString());
                         System.out.println("本次识别sid ==》" + iatResponse.getSid());
                         iatClient.closeWebsocket();
                         System.exit(0);
