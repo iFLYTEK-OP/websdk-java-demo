@@ -5,7 +5,7 @@ import cn.xfyun.config.IseAueEnum;
 import cn.xfyun.config.IseCategoryEnum;
 import cn.xfyun.config.IseLanguageEnum;
 import cn.xfyun.config.PropertiesConfig;
-import sun.misc.IOUtils;
+import cn.hutool.core.io.IoUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,7 +42,7 @@ public class IseHttpClientApp {
                 new IseHttpClient.Builder(appId, apiKey, IseAueEnum.RAW, IseLanguageEnum.ZH_CN, IseCategoryEnum.READ_SENTENCE)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
-        byte[] bytes = IOUtils.readFully(inputStream, -1, true);
+        byte[] bytes = IoUtil.readBytes(inputStream);
         String result = client.send(Base64.getEncoder().encodeToString(bytes), "今天天气怎么样？");
         System.out.println("请求地址：" + client.getHostUrl());
         System.out.println("返回结果: " + result);

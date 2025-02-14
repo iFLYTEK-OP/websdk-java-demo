@@ -3,7 +3,7 @@ package cn.xfyun.demo;
 import cn.xfyun.api.ImageWordClient;
 import cn.xfyun.config.ImageWordEnum;
 import cn.xfyun.config.PropertiesConfig;
-import sun.misc.IOUtils;
+import cn.hutool.core.io.IoUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,7 +44,7 @@ public class ImageWordClientApp {
                 .Builder(appId, apiKey, apiSecret, ImageWordEnum.PRINTED_WORD)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
-        byte[] bytes = IOUtils.readFully(inputStream, -1, true);
+        byte[] bytes = IoUtil.readBytes(inputStream);
         String imageBase64 = Base64.getEncoder().encodeToString(bytes);
         System.out.println(client.imageWord(imageBase64, "jpg"));
     }

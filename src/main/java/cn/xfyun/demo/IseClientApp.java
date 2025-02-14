@@ -16,10 +16,9 @@ import java.security.SignatureException;
 import java.util.Base64;
 
 /**
- * @author: <flhong2@iflytek.com>
- * @description: ISE( iFly Speech Evaluator ) 语音评测
- * @version: v1.0
- * @create: 2021-04-12 16:26
+ * ISE( iFly Speech Evaluator ) 语音评测
+ * 1、APPID、APISecret、APIKey信息获取：https://console.xfyun.cn/services/ise
+ * 2、文档地址：https://www.xfyun.cn/doc/Ise/IseAPI.html
  **/
 public class IseClientApp {
 

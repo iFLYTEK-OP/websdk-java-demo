@@ -2,7 +2,7 @@ package cn.xfyun.demo;
 
 import cn.xfyun.api.WatermarkVerificationClient;
 import cn.xfyun.config.PropertiesConfig;
-import sun.misc.IOUtils;
+import cn.hutool.core.io.IoUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,11 +38,11 @@ public class WatermarkVerificationClientApp {
                 .Builder(appId, apiKey)
                 .build();
         InputStream inputStream1 = new FileInputStream(new File(resourcePath + filePath1));
-        byte[] bytes1 = IOUtils.readFully(inputStream1, -1, true);
+        byte[] bytes1 = IoUtil.readBytes(inputStream1);
         String imageBase641 = Base64.getEncoder().encodeToString(bytes1);
 
         InputStream inputStream2 = new FileInputStream(new File(resourcePath + filePath2));
-        byte[] bytes2 = IOUtils.readFully(inputStream2, -1, true);
+        byte[] bytes2 = IoUtil.readBytes(inputStream2);
         String imageBase642 = Base64.getEncoder().encodeToString(bytes2);
         System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.compare(imageBase641, imageBase642));

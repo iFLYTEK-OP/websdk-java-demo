@@ -15,7 +15,8 @@ import java.security.SignatureException;
 
 /**
  * TTS ( Text to Speech ):语音合成
- * @author yingpeng
+ 1、APPID、APISecret、APIKey信息获取：https://console.xfyun.cn/services/tts
+ 2、文档地址：https://www.xfyun.cn/doc/tts/online_tts/API.html
  */
 public class TtsClientApp {
 

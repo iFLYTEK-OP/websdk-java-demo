@@ -19,6 +19,8 @@ import java.util.Date;
 
 /**
  * IAT( iFly Auto Transform ) 语音听写
+ * 1、APPID、APISecret、APIKey信息获取：https://console.xfyun.cn/services/iat
+ * 2、文档地址：https://www.xfyun.cn/doc/asr/voicedictation/API.html
  */
 public class IatClientApp {
     private static final String appId = PropertiesConfig.getAppId();
@@ -83,7 +85,7 @@ public class IatClientApp {
                         System.out.println(sdf.format(dateBegin) + "开始");
                         System.out.println(sdf.format(dateEnd) + "结束");
                         System.out.println("耗时:" + (dateEnd.getTime() - dateBegin.getTime()) + "ms");
-                        System.out.println("最终识别结果" + finalResult.toString());
+                        System.out.println("最终识别结果 ==》" + finalResult.toString());
                         System.out.println("本次识别sid ==》" + iatResponse.getSid());
                         iatClient.closeWebsocket();
                         System.exit(0);

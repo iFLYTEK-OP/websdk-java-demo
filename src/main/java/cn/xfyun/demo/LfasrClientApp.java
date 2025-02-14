@@ -16,9 +16,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  *  ( Long Form ASR ) 语音转写
- *
- * @author : jun
- * @date : 2021年04月09日
+ 1、APPID、SecretKey信息获取：https://console.xfyun.cn/services/lfasr
+ 2、文档地址：https://www.xfyun.cn/doc/asr/ifasr_new/API.html
  */
 public class LfasrClientApp {
     private static final Logger logger = LoggerFactory.getLogger(LfasrClient.class);

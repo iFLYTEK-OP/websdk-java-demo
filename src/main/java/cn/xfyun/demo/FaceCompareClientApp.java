@@ -2,8 +2,7 @@ package cn.xfyun.demo;
 
 import cn.xfyun.api.FaceCompareClient;
 import cn.xfyun.config.PropertiesConfig;
-import sun.misc.IOUtils;
-
+import cn.hutool.core.io.IoUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -39,11 +38,11 @@ public class FaceCompareClientApp {
                 .Builder(appId, apiKey, apiSecret)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath1));
-        byte[] bytes = IOUtils.readFully(inputStream, -1, true);
+        byte[] bytes = IoUtil.readBytes(inputStream);
         String imageBase641 = Base64.getEncoder().encodeToString(bytes);
 
         InputStream inputStream1 = new FileInputStream(new File(resourcePath + filePath2));
-        byte[] bytes1 = IOUtils.readFully(inputStream1, -1, true);
+        byte[] bytes1 = IoUtil.readBytes(inputStream1);
         String imageBase642 = Base64.getEncoder().encodeToString(bytes1);
         System.out.println("请求地址：" + client.getHostUrl());
         System.out.println(client.faceCompare(imageBase641, "jpg", imageBase642, "jpg"));
