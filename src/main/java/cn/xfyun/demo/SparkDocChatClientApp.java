@@ -1,7 +1,7 @@
 package cn.xfyun.demo;
 
-import cn.xfyun.chat.SparkDoc;
-import cn.xfyun.chat.SparkDocChat;
+import cn.xfyun.domain.SparkDoc;
+import cn.xfyun.domain.SparkDocChat;
 import cn.xfyun.model.UserMessage;
 
 /**

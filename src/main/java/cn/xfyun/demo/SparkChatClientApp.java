@@ -1,10 +1,12 @@
 package cn.xfyun.demo;
 
-import cn.xfyun.chat.HttpSparkChat;
-import cn.xfyun.chat.WsSparkChat;
-import cn.xfyun.eum.SparkModelEum;
+import cn.xfyun.config.SparkModelEum;
+import cn.xfyun.domain.HttpSparkChat;
+import cn.xfyun.domain.WsSparkChat;
 import cn.xfyun.model.SystemMessage;
 import cn.xfyun.model.UserMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -15,8 +17,10 @@ import cn.xfyun.model.UserMessage;
  **/
 public class SparkChatClientApp {
 
+    private static final Logger logger = LoggerFactory.getLogger(SparkChatClientApp.class);
+    
     public static void main(String[] args) throws InterruptedException {
-        test1();
+        test3();
     }
 
     //http非流式调用，适用于简单的回答
@@ -37,7 +41,8 @@ public class SparkChatClientApp {
 
     //WEBSOCKET调用
     public static void test3() throws InterruptedException {
-        WsSparkChat.prepare(SparkModelEum.GENERAL_V35, "6057995a", "xxx", "xx")
+        logger.debug("test3");
+        WsSparkChat.prepare(SparkModelEum.GENERAL_V35, "6057995a", "28bb4b72196174bb290e8d60876a1013", "YjRkOTBlODAxM2U2NzIyZmMzMDhmMTdk")
                 .onMessage(SparkChatClientApp::print)
                 .append(SystemMessage.create("你现在扮演李白")).append(UserMessage.create("你喝醉过吗"))
                 .execute();
