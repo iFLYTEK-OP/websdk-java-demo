@@ -15,12 +15,14 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.security.SignatureException;
 import java.util.Base64;
 import java.util.Scanner;
 
 import javax.sound.sampled.LineUnavailableException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ISE( iFly Speech Evaluator ) 语音评测
@@ -28,6 +30,8 @@ import javax.sound.sampled.LineUnavailableException;
  * 2、文档地址：https://www.xfyun.cn/doc/Ise/IseAPI.html
  **/
 public class IseClientAppV2 {
+
+    private static final Logger logger = LoggerFactory.getLogger(IseClientAppV2.class);
 
     /**
      * 服务鉴权参数
@@ -56,7 +60,6 @@ public class IseClientAppV2 {
      * 静态变量初始化
      */
     static {
-
         iseClient = new IseClient.Builder()
                 .signature(appId, apiKey, apiSecret)
                 .addSub("ise")
@@ -70,8 +73,8 @@ public class IseClientAppV2 {
 
         try {
             resourcePath = IseClientAppV2.class.getResource("/").toURI().getPath();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error("资源路径获取失败", e);
         }
     }
 
@@ -81,29 +84,29 @@ public class IseClientAppV2 {
      * 1、成功回调：解码Base64格式的评测结果并输出；
      * 2、失败回调：记录通信异常状态。
      */
-    private static final AbstractIseWebSocketListener iseWebSocketListener = new AbstractIseWebSocketListener() {
+    private static final AbstractIseWebSocketListener iseListener = new AbstractIseWebSocketListener() {
     
         @Override
         public void onSuccess(WebSocket webSocket, IseResponseData iseResponseData) {
             try {
                 //解码Base64响应数据并转换为UTF-8字符串、中止JVM
-                System.out.println("sid:" + iseResponseData.getSid() + "\n最终识别结果:\n" + 
-                    new String(decoder.decode(iseResponseData.getData().getData()), "UTF-8"));
+                logger.info("sid：{}，最终评测结果：{}{}", iseResponseData.getSid(), System.lineSeparator(), new String(decoder.decode(iseResponseData.getData().getData()), "UTF-8"));
                 System.exit(0); 
             } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                logger.error("解码失败", e);
             }
         }
     
         @Override
         public void onFail(WebSocket webSocket, Throwable throwable, Response response) {
             // 简单输出失败响应结果，实际生产环境建议添加重试逻辑
-            System.out.println(response);
+            logger.error("通信异常，服务端响应结果：{}", response, throwable);
+            System.exit(0);
         }
+        
     };
 
     public static void main(String[] args) throws SignatureException, InterruptedException, LineUnavailableException, IOException {
-                
         // 方式一：处理从文件中获取的音频数据
         // processAudioFromFile();
 
@@ -114,12 +117,23 @@ public class IseClientAppV2 {
     /**
      * 处理从文件中获取的音频数据
      */
-    public static void processAudioFromFile() throws LineUnavailableException, MalformedURLException, SignatureException, FileNotFoundException {
-        
-        File file = new File(resourcePath + filePath);
-        
-        // 发送音频数据
-        iseClient.send(file, iseWebSocketListener);
+    public static void processAudioFromFile() throws MalformedURLException, SignatureException, FileNotFoundException {
+        String completeFilePath = resourcePath + filePath;
+
+        try {
+            File file = new File(completeFilePath);
+            // 发送音频数据
+            iseClient.send(file, iseListener);
+        } catch (FileNotFoundException e) {
+            logger.error("音频文件未找到，路径为：{}", completeFilePath, e);
+            throw new RuntimeException("音频文件加载失败，请检查路径：" + completeFilePath);
+        } catch (MalformedURLException e) {
+            logger.error("无效的URL格式，异常信息：{}", e);
+            throw new RuntimeException("音频服务地址配置错误", e);
+        } catch (SignatureException e) {
+            logger.error("API签名异常", e);
+            throw new RuntimeException("服务鉴权失败，请检查API密钥配置");
+        }
     }
 
     /**
@@ -127,30 +141,48 @@ public class IseClientAppV2 {
      * @throws IOException 
      */
     public static void processAudioFromMicrophone() throws LineUnavailableException, SignatureException, IOException {
-        
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("本次评测内容为：【" + iseClient.getText().replace("\uFEFF", "") + "】。按回车开始实时评测...");
-        scanner.nextLine();
+        Scanner scanner = null;
+        MicrophoneRecorderUtil recorder = null;
 
-        // 创建带缓冲的音频管道流
-        PipedInputStream audioInputStream = new PipedInputStream();
-        PipedOutputStream audioOutputStream = new PipedOutputStream(audioInputStream);
-        
-        // 配置录音工具
-        MicrophoneRecorderUtil recorder = new MicrophoneRecorderUtil();
-        
-        // 开始录音并初始化状态
-        recorder.startRecording(audioOutputStream);
+        try {
+            scanner = new Scanner(System.in);
+            logger.info("本次评测内容为【{}】，按回车开始实时评测...", iseClient.getText().replace("\uFEFF", ""));
+            scanner.nextLine();
+    
+            // 创建带缓冲的音频管道流
+            PipedInputStream audioInputStream = new PipedInputStream();
+            PipedOutputStream audioOutputStream = new PipedOutputStream(audioInputStream);
+            
+            // 配置录音工具
+            recorder = new MicrophoneRecorderUtil();
 
-        // 启动流式评测
-        iseClient.send(audioInputStream, iseWebSocketListener);
+            // 开始录音并初始化状态
+            recorder.startRecording(audioOutputStream);
 
-        System.out.println("正在聆听，按回车结束评测...");
-        scanner.nextLine();
-        
-        // 停止录音并关闭资源
-        recorder.stopRecording();
-        iseClient.closeWebsocket();
-        scanner.close();
+            // 调用评测服务
+            iseClient.send(audioInputStream, iseListener);
+
+            logger.info("正在聆听，按回车结束评测...");
+            scanner.nextLine();
+        } catch (LineUnavailableException e) {
+            logger.error("录音设备不可用", e);
+            throw new RuntimeException("麦克风初始化失败，请检查录音设备", e);
+        } catch (SignatureException e) {
+            logger.error("API签名验证失败", e);
+            throw new RuntimeException("服务鉴权异常，请检查密钥配置", e);
+        } catch (IOException e) {
+            logger.error("流操作异常", e);
+            throw new RuntimeException("音频数据传输失败", e);
+        } finally {
+            // 释放资源
+            if (scanner != null) {
+                scanner.close();
+            }
+            if (recorder != null) {
+                recorder.stopRecording();
+            }
+            // 此处取消了手动关闭WebSocket连接，listener收到服务端响应后再关闭连接。
+        }
     }
+
 }

@@ -15,7 +15,9 @@ import okio.ByteString;
 import javax.annotation.Nullable;
 import javax.sound.sampled.LineUnavailableException;
 
-import java.io.ByteArrayInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -36,6 +38,8 @@ import java.util.concurrent.CountDownLatch;
  */
 public class RtasrClientAppV2 {
 
+	private static final Logger logger = LoggerFactory.getLogger(IatClientAppV2.class);
+
 	/**
 	 * 服务鉴权参数
 	 */
@@ -46,7 +50,6 @@ public class RtasrClientAppV2 {
 	 * 音频文件路径
 	 */
 	private static String filePath = "audio/rtasr.pcm";
-	// private static String filePath = "audio/silence_20s.pcm";
 	private static String resourcePath;
 
 	/**
@@ -63,7 +66,6 @@ public class RtasrClientAppV2 {
 	 * 静态变量初始化
 	 */
 	static {
-
 		rtasrClient = new RtasrClient.Builder()
 				.signature(APP_ID, API_KEY).build();
 
@@ -81,10 +83,11 @@ public class RtasrClientAppV2 {
 	 * 2、连接异常、业务异常和服务端关闭的回调：退出主线程，中止JVM。
 	 */
 	private static final AbstractRtasrWebSocketListener rtasrWebSocketListener = new AbstractRtasrWebSocketListener() {
+
 		@Override
 		public void onSuccess(WebSocket webSocket, String text) {
 			RtasrResponse response = JSONObject.parseObject(text, RtasrResponse.class);
-			System.out.println(getContent(response.getData()));
+			logger.info("实时转写结果：【{}】", getContent(response.getData()));
 		}
 
 		@Override
@@ -95,16 +98,15 @@ public class RtasrClientAppV2 {
 
 		@Override
 		public void onBusinessFail(WebSocket webSocket, String text) {
-			System.out.println(text);
+			logger.error("业务异常，返回信息为：{}", text);
 			latch.countDown();
 			System.exit(0);
 		}
 
 		@Override
 		public void onClosing(WebSocket webSocket, int code, String reason) {
-			System.out.println("服务端正在关闭连接");
 			latch.countDown();
-			// System.exit(0);
+			System.exit(0);
 		}
 
 		@Override
@@ -112,12 +114,12 @@ public class RtasrClientAppV2 {
 			latch.countDown();
 			System.exit(0);
 		}
+
 	};
 
 	public static void main(String[] args) throws Exception {
-
 		// 方式一：处理输入流形式的音频数据
-		processAudioFromFileInputStream();
+		// processAudioFromFileInputStream();
 
 		// 方式二：处理字节数组形式的音频数据
 		// processAudioFromFileByteArray();
@@ -126,123 +128,223 @@ public class RtasrClientAppV2 {
 		// processAudioRaw();
 
 		// 方式四：处理麦克风输入的音频数据
-		// processAudioFromMicrophone();
+		processAudioFromMicrophone();
 	}
 
 	/**
 	 * 处理输入流形式的音频数据
+     * @throws RuntimeException 包含以下可能情况：
+     * - 文件未找到异常
+     * - API签名异常
+     * - 线程中断异常
 	 */
 	public static void processAudioFromFileInputStream() throws SignatureException, InterruptedException, FileNotFoundException {
-		
-		File file = new File(resourcePath + filePath);
-		FileInputStream inputStream = new FileInputStream(file);
-		latch = new CountDownLatch(1);
-		rtasrClient.send(inputStream, rtasrWebSocketListener);
+		String completeFilePath = resourcePath + filePath;
+		FileInputStream inputStream = null;
 
-		latch.await();
+        try {
+            File file = new File(completeFilePath);
+            inputStream = new FileInputStream(file);
+            latch = new CountDownLatch(1);
+            rtasrClient.send(inputStream, rtasrWebSocketListener);
+            
+            latch.await();
+        } catch (FileNotFoundException e) {
+            logger.error("音频文件未找到，路径：{}", completeFilePath, e);
+            throw new RuntimeException("文件加载失败，请检查路径：" + completeFilePath, e);
+        } catch (SignatureException e) {
+            logger.error("API签名验证失败", e);
+            throw new RuntimeException("服务鉴权失败，请检查密钥配置", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("线程等待被中断", e);
+            throw new RuntimeException("转写操作被意外终止", e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    logger.error("文件流关闭异常", e);
+                }
+            }
+        }
 	}
 
 	/**
 	 * 处理字节数组形式的音频数据
+     * @throws RuntimeException 包含以下可能情况：
+     * - 文件未找到异常
+     * - API签名异常
+     * - 线程中断异常
+	 * - IO操作异常 
 	 */
-	public static void processAudioFromFileByteArray() throws SignatureException, InterruptedException, IOException {
+	public static void processAudioFromFileByteArray(){
+		String completeFilePath = resourcePath + filePath;
+		FileInputStream inputStream = null;
+		
+        try {
+            File file = new File(completeFilePath);
+            inputStream = new FileInputStream(file);
+            
+            byte[] buffer = new byte[1024000];
+            inputStream.read(buffer);
 
-		File file = new File(resourcePath + filePath);
-		FileInputStream inputStream = new FileInputStream(file);
-		byte[] buffer = new byte[1024000];
-		inputStream.read(buffer);
-		latch = new CountDownLatch(1);
-		rtasrClient.send(buffer, inputStream, rtasrWebSocketListener);
-
-		latch.await();
+            latch = new CountDownLatch(1);
+            rtasrClient.send(buffer, inputStream, rtasrWebSocketListener);
+            latch.await();
+        } catch (FileNotFoundException e) {
+            logger.error("音频文件未找到，路径：{}", completeFilePath, e);
+            throw new RuntimeException("文件加载失败，请检查路径", e);
+        } catch (SignatureException e) {
+            logger.error("API签名验证失败", e);
+            throw new RuntimeException("服务鉴权失败", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("线程等待被中断", e);
+            throw new RuntimeException("转写操作被终止", e);
+        } catch (IOException e) {
+            logger.error("IO操作异常", e);
+            throw new RuntimeException("数据传输失败", e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    logger.error("文件流关闭异常", e);
+                }
+            }
+        }
 	}
 
 	/**
 	 * 原生实现，用户自定义处理
 	 * 仅创建了一个webSocket连接，需要用户自己处理分段 和 发送结束标识。否则服务端返回的结果不完善。
+  	 * @throws RuntimeException 包含以下可能情况：
+     * - 文件读取异常
+     * - 网络通信异常
+     * - 线程中断异常
 	 */
-	public static void processAudioRaw() throws InterruptedException {
-		RtasrClient rtasrClient = new RtasrClient.Builder()
-				.signature(APP_ID, API_KEY).build();
+	public static void processAudioRaw(){
+		String completeFilePath = resourcePath + filePath;
 		latch = new CountDownLatch(1);
-		WebSocket webSocket = rtasrClient.newWebSocket(rtasrWebSocketListener);
+		
+		try {
+			WebSocket webSocket = rtasrClient.newWebSocket(rtasrWebSocketListener);
 
-		try (RandomAccessFile raf = new RandomAccessFile(new File(resourcePath + filePath), "r")) {
-
-			byte[] bytes = new byte[1280];
-			int len;
-			long lastTs = 0;
-			while ((len = raf.read(bytes)) != -1) {
-				if (len < 1280) {
-					bytes = Arrays.copyOfRange(bytes, 0, len);
-					webSocket.send(ByteString.of(bytes));
-					break;
-				}
-
-				long curTs = System.currentTimeMillis();
-				if (lastTs == 0) {
-					lastTs = System.currentTimeMillis();
-				} else {
-					long s = curTs - lastTs;
-					if (s < 40) {
-						System.out.println("error time interval: " + s + " ms");
+			try (RandomAccessFile raf = new RandomAccessFile(new File(completeFilePath), "r")) {
+				byte[] bytes = new byte[1280];
+				int len;
+				long lastTs = 0;
+				while ((len = raf.read(bytes)) != -1) {
+					if (len < 1280) {
+						bytes = Arrays.copyOfRange(bytes, 0, len);
+						webSocket.send(ByteString.of(bytes));
+						break;
 					}
+	
+					long curTs = System.currentTimeMillis();
+					if (lastTs == 0) {
+						lastTs = System.currentTimeMillis();
+					} else {
+						long s = curTs - lastTs;
+						if (s < 40) {
+							logger.warn("error time interval: " + s + " ms");
+						}
+					}
+					webSocket.send(ByteString.of(bytes));
+					// 每隔40毫秒发送一次数据
+					Thread.sleep(40);
 				}
-				webSocket.send(ByteString.of(bytes));
-				// 每隔40毫秒发送一次数据
-				Thread.sleep(40);
+				// 发送结束标识
+				rtasrClient.sendEnd();
 			}
-			// 发送结束标识
-			rtasrClient.sendEnd();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		latch.await();
+			latch.await();
+		} catch (FileNotFoundException e) {
+            logger.error("音频文件未找到：{}", completeFilePath, e);
+            throw new RuntimeException("文件加载失败", e);
+        } catch (IOException e) {
+            logger.error("数据读写异常", e);
+            throw new RuntimeException("网络通信失败", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("线程执行被中断", e);
+            throw new RuntimeException("转写操作被终止", e);
+        }
 	}
 
 	 /**
 	 * 处理麦克风输入的音频数据
-	 * @throws IOException 
+     * @throws RuntimeException 包含以下可能情况：
+     * - 录音设备不可用
+     * - API签名异常
+     * - 网络通信异常
 	 */
 	public static void processAudioFromMicrophone() throws LineUnavailableException, SignatureException, InterruptedException, IOException {
-        
-		Scanner scanner = new Scanner(System.in);
-        System.out.println("按回车开始实时转写...");
-        scanner.nextLine();
-		// 创建带缓冲的音频管道流（管道缓存过大/过小会导致数据发送过快/过慢进而导致服务器引擎出错提前结束WebSocket连接）
-		PipedInputStream audioInputStream = new PipedInputStream(1280); 
-		PipedOutputStream audioOutputStream = new PipedOutputStream(audioInputStream);
-		
-		// 配置录音工具
-		MicrophoneRecorderUtil recorder = new MicrophoneRecorderUtil();
-		
-		// 开始录音并初始化状态
-		recorder.startRecording(audioOutputStream);
+		Scanner scanner = null;
+        MicrophoneRecorderUtil recorder = null;
+        PipedInputStream audioInputStream = null;
+        PipedOutputStream audioOutputStream = null;
 
-		// 初始化倒计时锁
-		latch = new CountDownLatch(1);
+		// 处理录音初始化与交互
+		try {
+			scanner = new Scanner(System.in);
+			logger.info("按回车开始实时转写...");
+			scanner.nextLine();
 
-		// 启动流式转写
-		rtasrClient.send(audioInputStream, rtasrWebSocketListener);
+			// 创建带缓冲的音频管道流（管道缓存过大/过小会导致数据发送过快/过慢进而导致服务器引擎出错提前结束WebSocket连接）
+			audioInputStream = new PipedInputStream(1280); 
+			audioOutputStream = new PipedOutputStream(audioInputStream);
 
-		System.out.println("正在聆听，按回车结束转写...");
-		scanner.nextLine();
-		
-		// 停止录音并关闭资源
-		recorder.stopRecording();
-		rtasrClient.sendEnd();
-		latch.await();
-		audioOutputStream.close();
-		audioInputStream.close();
-		scanner.close();
+			// 配置录音工具并启动录音
+			recorder = new MicrophoneRecorderUtil();
+			recorder.startRecording(audioOutputStream);
+
+			// 初始化倒计时锁并启动流式读写
+			latch = new CountDownLatch(1);
+			rtasrClient.send(audioInputStream, rtasrWebSocketListener);
+
+			logger.info("正在聆听，按回车结束转写...");
+			scanner.nextLine();
+		} catch (LineUnavailableException e) {
+            logger.error("录音设备不可用，请检查麦克风权限", e);
+            throw new RuntimeException("音频输入设备初始化失败", e);
+        } catch (SignatureException e) {
+            logger.error("API签名验证失败", e);
+            throw new RuntimeException("服务鉴权失败", e);
+        } catch (IOException e) {
+            logger.error("网络通信异常", e);
+            throw new RuntimeException("连接转写服务失败", e);
+        } finally {
+            // 停止录音并释放资源
+			if (recorder != null) {
+				recorder.stopRecording();
+			}
+			if (scanner != null) {
+				scanner.close();
+			}
+			if (latch != null) {
+				latch.countDown();
+			}
+        }
+
+		// 处理转写结果等待
+		try {
+            // 发送结束标识并等待结果
+            rtasrClient.sendEnd();
+            if (latch != null) {
+                latch.await();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("转写等待被中断", e);
+            throw new RuntimeException("转写操作被终止", e);
+        }
     }
 
 	/**
 	 * 把转写结果解析为句子
 	 */
 	public static String getContent(String message) {
-
 		StringBuffer resultBuilder = new StringBuffer();
 
 		try {
