@@ -216,13 +216,12 @@ public class RtasrClientAppV2 {
 		
 		// 配置录音工具
 		MicrophoneRecorderUtil recorder = new MicrophoneRecorderUtil();
-		recorder.setOutputStream(audioOutputStream);
-		
-		// 初始化倒计时锁
-		latch = new CountDownLatch(1);
 		
 		// 开始录音并初始化状态
-		recorder.startRecordingV2();
+		recorder.startRecording(audioOutputStream);
+
+		// 初始化倒计时锁
+		latch = new CountDownLatch(1);
 
 		// 启动流式转写
 		rtasrClient.send(audioInputStream, rtasrWebSocketListener);

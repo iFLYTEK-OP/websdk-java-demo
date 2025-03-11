@@ -138,10 +138,9 @@ public class IseClientAppV2 {
         
         // 配置录音工具
         MicrophoneRecorderUtil recorder = new MicrophoneRecorderUtil();
-        recorder.setOutputStream(audioOutputStream);
         
         // 开始录音并初始化状态
-        recorder.startRecordingV2();
+        recorder.startRecording(audioOutputStream);
 
         // 启动流式评测
         iseClient.send(audioInputStream, iseWebSocketListener);
