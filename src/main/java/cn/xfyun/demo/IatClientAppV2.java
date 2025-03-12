@@ -103,7 +103,7 @@ public class IatClientAppV2 {
                     IatResult result = iatResponse.getData().getResult();
                     Text textObject = result.getText();
                     handleResultText(textObject);
-                    logger.info("中间识别结果：{}", textObject.getText());
+                    logger.info("中间识别结果：{}", getFinalResult());
                 }
 
                 if (iatResponse.getData().getStatus() == 2) {

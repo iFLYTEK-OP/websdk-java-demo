@@ -15,6 +15,7 @@ import okio.ByteString;
 import javax.annotation.Nullable;
 import javax.sound.sampled.LineUnavailableException;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +64,11 @@ public class RtasrClientAppV2 {
 	private static CountDownLatch latch;
 
 	/**
+     * 记录完整结果
+     */
+    private static StringBuffer finalResult; 
+
+	/**
 	 * 静态变量初始化
 	 */
 	static {
@@ -87,7 +93,10 @@ public class RtasrClientAppV2 {
 		@Override
 		public void onSuccess(WebSocket webSocket, String text) {
 			RtasrResponse response = JSONObject.parseObject(text, RtasrResponse.class);
-			logger.info("实时转写结果：【{}】", getContent(response.getData()));
+			// finalResult为服务端已转写的完整语句，后面拼接服务端本次返回的当前语句的转写中间结果。
+			String tempResult = handleAndReturnContent(response.getData());
+			logger.info("实时转写结果：{}", finalResult + tempResult);
+			// logger.info("实时转写原生结果：{}", response.getData());
 		}
 
 		@Override
@@ -141,6 +150,7 @@ public class RtasrClientAppV2 {
 	public static void processAudioFromFileInputStream() throws SignatureException, InterruptedException, FileNotFoundException {
 		String completeFilePath = resourcePath + filePath;
 		FileInputStream inputStream = null;
+		finalResult = new StringBuffer();
 
         try {
             File file = new File(completeFilePath);
@@ -181,6 +191,7 @@ public class RtasrClientAppV2 {
 	public static void processAudioFromFileByteArray(){
 		String completeFilePath = resourcePath + filePath;
 		FileInputStream inputStream = null;
+		finalResult = new StringBuffer();
 		
         try {
             File file = new File(completeFilePath);
@@ -226,6 +237,7 @@ public class RtasrClientAppV2 {
 	 */
 	public static void processAudioRaw(){
 		String completeFilePath = resourcePath + filePath;
+		finalResult = new StringBuffer();
 		latch = new CountDownLatch(1);
 		
 		try {
@@ -284,6 +296,7 @@ public class RtasrClientAppV2 {
         MicrophoneRecorderUtil recorder = null;
         PipedInputStream audioInputStream = null;
         PipedOutputStream audioOutputStream = null;
+		finalResult = new StringBuffer();
 
 		// 处理录音初始化与交互
 		try {
@@ -342,12 +355,13 @@ public class RtasrClientAppV2 {
     }
 
 	/**
-	 * 把转写结果解析为句子
+	 * 解析转写流式响应，更新实时结果，返回此次的中间结果
 	 */
-	public static String getContent(String message) {
-		StringBuffer resultBuilder = new StringBuffer();
+	public static String handleAndReturnContent(String message) {
+		StringBuffer tempResult = new StringBuffer();
 
 		try {
+			// 解析本次服务端返回的文本内容
 			JSONObject messageObj = JSON.parseObject(message);
 			JSONObject cn = messageObj.getJSONObject("cn");
 			JSONObject st = cn.getJSONObject("st");
@@ -361,14 +375,26 @@ public class RtasrClientAppV2 {
 					for (int k = 0; k < cwArr.size(); k++) {
 						JSONObject cwArrObj = cwArr.getJSONObject(k);
 						String wStr = cwArrObj.getString("w");
-						resultBuilder.append(wStr);
+						tempResult.append(wStr);
 					}
 				}
 			}
+
+			String type = st.getString("type");
+			if (StringUtils.equals("1", type)) {
+				// 此时服务端返回的是当前语句的实时转写内容，不保存到最终结果中，返回到调用处进行拼接展示。
+				return tempResult.toString();
+			} else if (StringUtils.equals("0", type)) {
+				// 此时服务端返回的是当前语句的完整转写内容，保存到最终结果中，并返回空字符串。
+				finalResult.append(tempResult);
+				return "";
+			} else {
+				logger.warn("未知的转写响应类型：{}", type);
+				return tempResult.toString();
+			}
+			
 		} catch (Exception e) {
 			return message;
 		}
-
-		return resultBuilder.toString();
 	}
 }
