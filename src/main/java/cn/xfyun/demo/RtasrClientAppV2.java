@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.RandomAccessFile;
-import java.net.URISyntaxException;
 import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -39,7 +38,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class RtasrClientAppV2 {
 
-	private static final Logger logger = LoggerFactory.getLogger(IatClientAppV2.class);
+	private static final Logger logger = LoggerFactory.getLogger(RtasrClientAppV2.class);
 
 	/**
 	 * 服务鉴权参数
@@ -77,7 +76,7 @@ public class RtasrClientAppV2 {
 
 		try {
 			resourcePath = RtasrClientAppV2.class.getResource("/").toURI().getPath();
-		} catch (URISyntaxException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
