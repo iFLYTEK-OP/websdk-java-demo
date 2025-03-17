@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.speech;
 
 import cn.xfyun.config.PropertiesConfig;
 import com.alibaba.fastjson.JSON;
@@ -36,9 +36,9 @@ import java.util.concurrent.CountDownLatch;
  * 1、APPID、APIKey信息获取：https://console.xfyun.cn/services/rta
  * 2、文档地址：https://www.xfyun.cn/doc/asr/rtasr/API.html
  */
-public class RtasrClientAppV2 {
+public class RtasrClientApp {
 
-	private static final Logger logger = LoggerFactory.getLogger(RtasrClientAppV2.class);
+	private static final Logger logger = LoggerFactory.getLogger(RtasrClientApp.class);
 
 	/**
 	 * 服务鉴权参数
@@ -75,7 +75,7 @@ public class RtasrClientAppV2 {
 				.signature(APP_ID, API_KEY).build();
 
 		try {
-			resourcePath = RtasrClientAppV2.class.getResource("/").toURI().getPath();
+			resourcePath = RtasrClientApp.class.getResource("/").toURI().getPath();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -141,12 +141,8 @@ public class RtasrClientAppV2 {
 
 	/**
 	 * 处理输入流形式的音频数据
-     * @throws RuntimeException 包含以下可能情况：
-     * - 文件未找到异常
-     * - API签名异常
-     * - 线程中断异常
 	 */
-	public static void processAudioFromFileInputStream() throws SignatureException, InterruptedException, FileNotFoundException {
+	public static void processAudioFromFileInputStream() {
 		String completeFilePath = resourcePath + filePath;
 		FileInputStream inputStream = null;
 		finalResult = new StringBuffer();
@@ -181,11 +177,6 @@ public class RtasrClientAppV2 {
 
 	/**
 	 * 处理字节数组形式的音频数据
-     * @throws RuntimeException 包含以下可能情况：
-     * - 文件未找到异常
-     * - API签名异常
-     * - 线程中断异常
-	 * - IO操作异常 
 	 */
 	public static void processAudioFromFileByteArray(){
 		String completeFilePath = resourcePath + filePath;
@@ -228,11 +219,7 @@ public class RtasrClientAppV2 {
 
 	/**
 	 * 原生实现，用户自定义处理
-	 * 仅创建了一个webSocket连接，需要用户自己处理分段 和 发送结束标识。否则服务端返回的结果不完善。
-  	 * @throws RuntimeException 包含以下可能情况：
-     * - 文件读取异常
-     * - 网络通信异常
-     * - 线程中断异常
+	 * 仅创建了一个webSocket连接，需要用户自己处理分段和发送结束标识。否则服务端返回的结果不完善。
 	 */
 	public static void processAudioRaw(){
 		String completeFilePath = resourcePath + filePath;
@@ -285,12 +272,8 @@ public class RtasrClientAppV2 {
 
 	 /**
 	 * 处理麦克风输入的音频数据
-     * @throws RuntimeException 包含以下可能情况：
-     * - 录音设备不可用
-     * - API签名异常
-     * - 网络通信异常
 	 */
-	public static void processAudioFromMicrophone() throws LineUnavailableException, SignatureException, InterruptedException, IOException {
+	public static void processAudioFromMicrophone() {
 		Scanner scanner = null;
         MicrophoneRecorderUtil recorder = null;
         PipedInputStream audioInputStream = null;

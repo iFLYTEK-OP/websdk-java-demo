@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.speech;
 
 import cn.xfyun.api.IseClient;
 import cn.xfyun.config.PropertiesConfig;
@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
  * 1、APPID、APISecret、APIKey信息获取：https://console.xfyun.cn/services/ise
  * 2、文档地址：https://www.xfyun.cn/doc/Ise/IseAPI.html
  **/
-public class IseClientAppV2 {
+public class IseClientApp {
 
-    private static final Logger logger = LoggerFactory.getLogger(IseClientAppV2.class);
+    private static final Logger logger = LoggerFactory.getLogger(IseClientApp.class);
 
     /**
      * 服务鉴权参数
@@ -72,7 +72,7 @@ public class IseClientAppV2 {
                 .build();
 
         try {
-            resourcePath = IseClientAppV2.class.getResource("/").toURI().getPath();
+            resourcePath = IseClientApp.class.getResource("/").toURI().getPath();
         } catch (Exception e) {
             logger.error("资源路径获取失败", e);
         }
@@ -117,7 +117,7 @@ public class IseClientAppV2 {
     /**
      * 处理从文件中获取的音频数据
      */
-    public static void processAudioFromFile() throws MalformedURLException, SignatureException, FileNotFoundException {
+    public static void processAudioFromFile() {
         String completeFilePath = resourcePath + filePath;
 
         try {
@@ -140,7 +140,7 @@ public class IseClientAppV2 {
      * 处理麦克风输入的音频数据
      * @throws IOException 
      */
-    public static void processAudioFromMicrophone() throws LineUnavailableException, SignatureException, IOException {
+    public static void processAudioFromMicrophone() {
         Scanner scanner = null;
         MicrophoneRecorderUtil recorder = null;
 

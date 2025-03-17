@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.face;
 
 import cn.xfyun.api.WatermarkVerificationClient;
 import cn.xfyun.config.PropertiesConfig;

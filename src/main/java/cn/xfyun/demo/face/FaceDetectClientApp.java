@@ -1,6 +1,6 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.face;
 
-import cn.xfyun.api.PlaceRecClient;
+import cn.xfyun.api.FaceDetectClient;
 import cn.xfyun.config.PropertiesConfig;
 import cn.hutool.core.io.IoUtil;
 
@@ -10,7 +10,12 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Base64;
 
-public class PlaceRecClientApp {
+/**
+ * @author mqgao
+ * @version 1.0
+ * @date 2021/7/21 11:53
+ */
+public class FaceDetectClientApp {
 
     private static final String appId = PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
@@ -21,20 +26,21 @@ public class PlaceRecClientApp {
 
     static {
         try {
-            resourcePath = PlaceRecClientApp.class.getResource("/").toURI().getPath();
+            resourcePath = FaceDetectClientApp.class.getResource("/").toURI().getPath();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
     }
 
     public static void main(String[] args) throws Exception {
-        // 场所识别
-        PlaceRecClient client = new PlaceRecClient
+        // 人脸检测和属性分析
+        FaceDetectClient client = new FaceDetectClient
                 .Builder(appId, apiKey, apiSecret)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
-        byte[] imageByteArray = IoUtil.readBytes(inputStream);
-        String imageBase64 = Base64.getEncoder().encodeToString(imageByteArray);
-        System.out.println(client.send(imageBase64, "jpg"));
+        byte[] bytes = IoUtil.readBytes(inputStream);
+        String imageBase64 = Base64.getEncoder().encodeToString(bytes);
+        System.out.println("请求地址：" + client.getHostUrl());
+        System.out.println(client.faceContrast(imageBase64, "jpg"));
     }
 }

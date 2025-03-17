@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.nlp;
 
 import cn.xfyun.api.TextCheckClient;
 import cn.xfyun.config.PropertiesConfig;

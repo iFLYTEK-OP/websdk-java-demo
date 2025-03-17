@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.speech;
 
 import cn.xfyun.api.IatClient;
 import cn.xfyun.config.PropertiesConfig;
@@ -35,9 +35,9 @@ import org.slf4j.LoggerFactory;
  * 1、APPID、APISecret、APIKey信息获取：https://console.xfyun.cn/services/iat
  * 2、文档地址：https://www.xfyun.cn/doc/asr/voicedictation/API.html
  */
-public class IatClientAppV2 {
+public class IatClientApp {
 
-    private static final Logger logger = LoggerFactory.getLogger(IatClientAppV2.class);
+    private static final Logger logger = LoggerFactory.getLogger(IatClientApp.class);
 
     /**
      * 服务鉴权参数
@@ -75,7 +75,7 @@ public class IatClientAppV2 {
                 .build();
                 
         try {
-            resourcePath = IatClientAppV2.class.getResource("/").toURI().getPath();
+            resourcePath = IatClientApp.class.getResource("/").toURI().getPath();
         } catch (Exception e) {
             logger.error("资源路径获取失败", e);
         }
@@ -129,19 +129,14 @@ public class IatClientAppV2 {
 
     public static void main(String[] args) throws SignatureException, LineUnavailableException, IOException {
         // 方式一：处理从文件中获取的音频数据
-        // processAudioFromFile();
+        processAudioFromFile();
 
         // 方式二：处理麦克风输入的音频数据
-        processAudioFromMicrophone();
+        // processAudioFromMicrophone();
     }
 
     /**
      * 处理从文件中获取的音频数据
-     * @throws RuntimeException 包含以下可能情况：
-     * - 文件未找到异常
-     * - URL格式异常
-     * - API签名异常
-     * - 网络IO异常
      */
     public static void processAudioFromFile() {
         // 记录操作耗时与最终结果
@@ -167,10 +162,6 @@ public class IatClientAppV2 {
 
     /**
      * 处理麦克风输入的音频数据
-     * @throws RuntimeException 包含以下可能情况：
-     * - 录音设备不可用
-     * - API签名异常
-     * - 网络通信异常
      */
     public static void processAudioFromMicrophone() {
         Scanner scanner = null;
