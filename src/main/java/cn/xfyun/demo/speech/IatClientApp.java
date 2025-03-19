@@ -18,10 +18,7 @@ import java.io.PipedOutputStream;
 import java.net.MalformedURLException;
 import java.security.SignatureException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 import javax.sound.sampled.LineUnavailableException;
 
@@ -32,8 +29,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * IAT( iFly Auto Transform ) 语音听写
- * 1、APPID、APISecret、APIKey信息获取：https://console.xfyun.cn/services/iat
- * 2、文档地址：https://www.xfyun.cn/doc/asr/voicedictation/API.html
+ * 1、APPID、APISecret、APIKey信息获取：<a href="https://console.xfyun.cn/services/iat">...</a>
+ * 2、文档地址：<a href="https://www.xfyun.cn/doc/asr/voicedictation/API.html">...</a>
+ *
+ * @author kaili23
  */
 public class IatClientApp {
 
@@ -49,33 +48,29 @@ public class IatClientApp {
     /**
      * 音频文件路径
      */
-    private static String filePath = "audio/iat_pcm_16k.pcm";
-    private static String resourcePath;
+    private static String audioFilePath;
 
     /**
      * 记录操作耗时与完整结果
      */
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
     private static Date dateBegin;
-    private static List<Text> resultSegments; 
+    private static List<Text> resultSegments;
 
     /**
      * 语音听写客户端
      */
     private static IatClient iatClient;
 
-    /**
-     * 静态变量初始化
-     */
     static {
         iatClient = new IatClient.Builder()
                 .signature(appId, apiKey, apiSecret)
                 // 动态修正功能：值为wpgs时代表开启（包含修正功能的）流式听写
                 .dwa("wpgs")
                 .build();
-                
+
         try {
-            resourcePath = IatClientApp.class.getResource("/").toURI().getPath();
+            audioFilePath = Objects.requireNonNull(IatClientApp.class.getResource("/")).toURI().getPath() + "/audio/iat_pcm_16k.pcm";
         } catch (Exception e) {
             logger.error("资源路径获取失败", e);
         }
@@ -88,7 +83,7 @@ public class IatClientApp {
      * 2、失败回调：自定义处理（记录通信异常等）。
      */
     private static final AbstractIatWebSocketListener iatListener = new AbstractIatWebSocketListener() {
-       
+
         @Override
         public void onSuccess(WebSocket webSocket, IatResponse iatResponse) {
             if (iatResponse.getCode() != 0) {
@@ -142,15 +137,13 @@ public class IatClientApp {
         // 记录操作耗时与最终结果
         dateBegin = new Date();
         resultSegments = new ArrayList<>();
-        String completeFilePath = resourcePath + filePath;
 
         try {
-            File file = new File(completeFilePath);
-            // 发送音频数据
+            File file = new File(audioFilePath);
             iatClient.send(file, iatListener);
         } catch (FileNotFoundException e) {
-            logger.error("音频文件未找到，路径：{}", completeFilePath, e);
-            throw new RuntimeException("音频文件加载失败，请检查路径：" + completeFilePath);
+            logger.error("音频文件未找到，路径：{}", audioFilePath, e);
+            throw new RuntimeException("音频文件加载失败，请检查路径：" + audioFilePath);
         } catch (MalformedURLException e) {
             logger.error("无效的URL格式", e);
             throw new RuntimeException("音频服务地址配置错误", e);
@@ -164,18 +157,16 @@ public class IatClientApp {
      * 处理麦克风输入的音频数据
      */
     public static void processAudioFromMicrophone() {
-        Scanner scanner = null;
         MicrophoneRecorderUtil recorder = null;
 
-        try {
-            scanner = new Scanner(System.in);
+        try (Scanner scanner = new Scanner(System.in)) {
             logger.info("按回车开始实时听写...");
             scanner.nextLine();
-    
+
             // 创建带缓冲的音频管道流
             PipedInputStream audioInputStream = new PipedInputStream();
             PipedOutputStream audioOutputStream = new PipedOutputStream(audioInputStream);
-            
+
             // 配置录音工具
             recorder = new MicrophoneRecorderUtil();
 
@@ -200,9 +191,6 @@ public class IatClientApp {
             throw new RuntimeException("音频数据传输失败", e);
         } finally {
             // 释放资源
-            if (scanner != null) {
-                scanner.close();
-            }
             if (recorder != null) {
                 recorder.stopRecording();
             }
@@ -215,11 +203,11 @@ public class IatClientApp {
      */
     private static void handleResultText(Text textObject) {
         // 处理流式返回的替换结果
-        if (StringUtils.equals(textObject.getPgs(), "rpl") && textObject.getRg()!= null && textObject.getRg().length == 2) {
+        if (StringUtils.equals(textObject.getPgs(), "rpl") && textObject.getRg() != null && textObject.getRg().length == 2) {
             // 返回结果序号sn字段的最小值为1
             int start = textObject.getRg()[0] - 1;
             int end = textObject.getRg()[1] - 1;
-            
+
             // 将指定区间的结果设置为删除状态
             for (int i = start; i <= end && i < resultSegments.size(); i++) {
                 resultSegments.get(i).setDeleted(true);

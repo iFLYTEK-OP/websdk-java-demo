@@ -16,15 +16,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.net.URISyntaxException;
 import java.security.SignatureException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- *  ( Long Form ASR ) 语音转写
- 1、APPID、SecretKey信息获取：https://console.xfyun.cn/services/lfasr
- 2、文档地址：https://www.xfyun.cn/doc/asr/ifasr_new/API.html
+ * ( Long Form ASR ) 语音转写
+ * 1、APPID、SecretKey信息获取：<a href="https://console.xfyun.cn/services/lfasr">...</a>
+ * 2、文档地址：<a href="https://www.xfyun.cn/doc/asr/ifasr_new/API.html">...</a>
+ *
+ * @author kaili23
  */
 public class LfasrClientApp {
 
@@ -38,17 +40,24 @@ public class LfasrClientApp {
 
     /**
      * 音频文件路径
+     * - 本地文件（默认、调用uploadFile方法）
+     * - 远程Url（配合参数audioMode = urlLink使用、调用uploadUrl方法）
      */
     private static String audioFilePath;
-    private static String audioUrl = "https://openres.xfyun.cn/xfyundoc/2025-03-19/b10ece3a-c883-4215-9c44-e2c213299716/1742355893204/lfasr-%E5%93%88%E5%93%88.wav";
-    private static String taskType = "transfer";
+    private static String audioUrl = "https://openres.xfyun.cn/xfyundoc/2025-03-19/e7b6a79d-124f-44e0-b8aa-0e799410f453/1742353716311/lfasr.wav";
 
     /**
-     * 静态变量初始化
+     * 任务类型
+     * - transfer：转写
+     * - translate：翻译（配合参数transLanguage和transMode使用）
+     * - predict：质检（配合控制台质检词库使用）
+     * - transfer,predict：转写 + 质检
      */
+    private static String taskType = "transfer";
+
     static {
         try {
-            audioFilePath = LfasrClientApp.class.getResource("/").toURI().getPath() + "/audio/lfasr_max.wav";
+            audioFilePath = Objects.requireNonNull(LfasrClientApp.class.getResource("/")).toURI().getPath() + "/audio/lfasr.wav";
         } catch (Exception e) {
             logger.error("资源路径获取失败", e);
         }
@@ -80,24 +89,24 @@ public class LfasrClientApp {
 
         // 3、查询转写结果
         int status = LfasrOrderStatusEnum.CREATED.getKey();
-         // 循环直到订单完成或失败
-        while (status != LfasrOrderStatusEnum.COMPLETED.getKey() && status != LfasrOrderStatusEnum.FAILED.getKey()) { 
+        // 循环直到订单完成或失败
+        while (status != LfasrOrderStatusEnum.COMPLETED.getKey() && status != LfasrOrderStatusEnum.FAILED.getKey()) {
             LfasrResponse resultResponse = lfasrClient.getResult(orderId, taskType);
             if (!StringUtils.equals(resultResponse.getCode(), "000000")) {
-                logger.error("查询失败，错误码：{}，错误信息：{}", resultResponse.getCode(), resultResponse.getDescInfo());
+                logger.error("转写任务失败，错误码：{}，错误信息：{}", resultResponse.getCode(), resultResponse.getDescInfo());
                 return;
             }
-            
+
             // 获取订单状态信息
             if (resultResponse.getContent() != null && resultResponse.getContent().getOrderInfo() != null) {
                 status = resultResponse.getContent().getOrderInfo().getStatus();
                 int failType = resultResponse.getContent().getOrderInfo().getFailType();
-                
+
                 // 根据状态输出日志
                 LfasrOrderStatusEnum statusEnum = LfasrOrderStatusEnum.getEnum(status);
                 if (statusEnum != null) {
                     logger.info("订单状态：{}", statusEnum.getValue());
-                    
+
                     // 如果订单失败，输出失败原因
                     if (statusEnum == LfasrOrderStatusEnum.FAILED) {
                         LfasrFailTypeEnum failTypeEnum = LfasrFailTypeEnum.getEnum(failType);
@@ -115,7 +124,7 @@ public class LfasrClientApp {
             } else {
                 logger.warn("返回结果中缺少订单信息");
             }
-            
+
             TimeUnit.SECONDS.sleep(20);
         }
     }
@@ -126,7 +135,7 @@ public class LfasrClientApp {
                 parseOrderResult(resultResponse.getContent().getOrderResult());
                 break;
             case "translate":
-                parseTransResult(resultResponse.getContent().getTransResult());
+                parseTransResult(resultResponse.getContent().getOrderResult(), resultResponse.getContent().getTransResult());
                 break;
             case "predict":
                 parsePredictResult(resultResponse.getContent().getPredictResult());
@@ -145,7 +154,6 @@ public class LfasrClientApp {
      * 解析转写结果
      */
     private static void parseOrderResult(String orderResultStr) {
-        // 使用Gson将JSON字符串转换为LfasrOrderResult对象
         Gson gson = new Gson();
         try {
             LfasrOrderResult orderResult = gson.fromJson(orderResultStr, LfasrOrderResult.class);
@@ -158,37 +166,35 @@ public class LfasrClientApp {
     /**
      * 解析翻译结果
      */
-    private static void parseTransResult(String transResultStr) {
+    private static void parseTransResult(String orderResultStr, String transResultStr) {
         Gson gson = new Gson();
         try {
-            Type transResultListType = new TypeToken<List<LfasrTransResult>>(){}.getType();
+            LfasrOrderResult orderResult = gson.fromJson(orderResultStr, LfasrOrderResult.class);
+            logger.info("原始结果：\n{}", getLatticeText(orderResult.getLattice()));
+            Type transResultListType = new TypeToken<List<LfasrTransResult>>() {
+            }.getType();
             List<LfasrTransResult> transResultList = gson.fromJson(transResultStr, transResultListType);
             logger.info("翻译结果：{}", getTranslationText(transResultList));
-           
         } catch (Exception e) {
             logger.error("翻译结果解析失败", e);
         }
-        
     }
 
     /**
      * 解析质检结果
      */
     private static void parsePredictResult(String predictResultStr) {
-        // 使用Gson将JSON字符串转换为LfasrOrderResult对象
         Gson gson = new Gson();
         try {
             LfasrPredictResult predictResult = gson.fromJson(predictResultStr, LfasrPredictResult.class);
             logger.info("质检结果：{}", predictResult);
-            
-            
         } catch (Exception e) {
             logger.error("质检结果解析失败", e);
         }
     }
 
     /**
-     * 从转写结果的lattice数组中提取文本并追加到结果中
+     * 从转写结果的lattice数组中提取文本
      */
     private static String getLatticeText(List<LfasrOrderResult.Lattice> latticeList) {
         StringBuilder resultText = new StringBuilder();
@@ -198,27 +204,35 @@ public class LfasrClientApp {
                 continue;
             }
             String rl = json1Best.getSt().getRl();
-            StringBuilder rlText = new StringBuilder();
-            for (LfasrOrderResult.RecognitionResult rt : json1Best.getSt().getRt()) {
-                if (rt.getWs() == null) {
-                    continue;
-                }
-                for (LfasrOrderResult.WordResult ws : rt.getWs()) {
-                    if (ws.getCw() != null && !ws.getCw().isEmpty()) {
-                        // 获取每个词的识别结果
-                        String word = ws.getCw().get(0).getW();
-                        if (word != null && !word.isEmpty()) {
-                            rlText.append(word);
-                        }
-                    }
-                }
-            }
-            resultText.append("角色-" + rl + "：" + rlText).append("\n");
+            StringBuilder rlText = getRlText(json1Best);
+            resultText.append("角色-").append(rl).append("：").append(rlText).append("\n");
         }
         return resultText.toString();
     }
 
-     /**
+    /**
+     * 从Json1Best中提取识别结果文本并拼接
+     */
+    private static StringBuilder getRlText(LfasrOrderResult.Json1Best json1Best) {
+        StringBuilder rlText = new StringBuilder();
+        for (LfasrOrderResult.RecognitionResult rt : json1Best.getSt().getRt()) {
+            if (rt.getWs() == null) {
+                continue;
+            }
+            for (LfasrOrderResult.WordResult ws : rt.getWs()) {
+                if (ws.getCw() != null && !ws.getCw().isEmpty()) {
+                    // 获取每个词的识别结果
+                    String word = ws.getCw().get(0).getW();
+                    if (word != null && !word.isEmpty()) {
+                        rlText.append(word);
+                    }
+                }
+            }
+        }
+        return rlText;
+    }
+
+    /**
      * 从翻译结果列表中提取并拼接翻译文本
      */
     private static String getTranslationText(List<LfasrTransResult> transResults) {

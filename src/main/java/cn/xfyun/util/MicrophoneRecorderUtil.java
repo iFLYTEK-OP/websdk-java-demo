@@ -12,11 +12,13 @@ import java.io.PipedOutputStream;
  * 麦克风录音工具类
  * 支持16kHz采样率、16位深度、单声道PCM格式音频采集；
  * 基于后台线程提供非阻塞式的录音操作并输出符合语音服务要求的原始音频字节数据。
+ *
+ * @author kaili23
  */
 public class MicrophoneRecorderUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(MicrophoneRecorderUtil.class);
-    
+
     /**
      * 音频格式配置参数（符合语音服务要求）
      * - 采样率：16000 Hz
@@ -30,7 +32,7 @@ public class MicrophoneRecorderUtil {
     private static final int CHANNELS = 1;
     private static final boolean SIGNED = true;
     private static final boolean BIG_ENDIAN = false;
-    
+
     /**
      * 录音设备句柄、状态标志与输出流
      * volatile保证多线程下的可见性
@@ -41,9 +43,10 @@ public class MicrophoneRecorderUtil {
 
     /**
      * 启动录音任务
+     *
      * @throws LineUnavailableException 当音频设备不可用时抛出
      * @throws IllegalArgumentException 当输出流为null时抛出
-     * @throws IllegalStateException 当已有录音任务运行时抛出
+     * @throws IllegalStateException    当已有录音任务运行时抛出
      */
     public synchronized void startRecording(PipedOutputStream outputStream) throws LineUnavailableException {
         if (outputStream == null) {
@@ -59,7 +62,7 @@ public class MicrophoneRecorderUtil {
         // 配置音频格式
         AudioFormat format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
         DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
-        
+
         // 获取系统录音设备数据线路，应用音频格式配置，开始采集音频数据
         try {
             targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
@@ -71,10 +74,8 @@ public class MicrophoneRecorderUtil {
         }
 
         // 启动独立录音线程
-       Thread captureThread = new Thread(() -> {
-            captureAudio();
-       });
-       captureThread.setUncaughtExceptionHandler((thread, throwable) -> {
+        Thread captureThread = new Thread(this::captureAudio);
+        captureThread.setUncaughtExceptionHandler((thread, throwable) -> {
             logger.error("录音线程异常", throwable);
             cleanupResources();
         });
@@ -87,12 +88,12 @@ public class MicrophoneRecorderUtil {
      */
     private void captureAudio() {
         recording = true;
-        byte[] buffer = new byte[1280]; 
-        
+        byte[] buffer = new byte[1280];
+
         // 循环读取音频数据
         while (recording) {
             int bytesRead = targetDataLine.read(buffer, 0, buffer.length);
-            if (bytesRead > 0 && outputStream!= null) {
+            if (bytesRead > 0 && outputStream != null) {
                 // 流式写入
                 try {
                     outputStream.write(buffer, 0, bytesRead);
@@ -135,5 +136,5 @@ public class MicrophoneRecorderUtil {
             outputStream = null;
         }
     }
-    
+
 }
