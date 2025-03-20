@@ -36,7 +36,7 @@ public class FTTClientApp {
         FTTClient client = new FTTClient.Builder()
                 .signatureWs("0", "xdeepseekv3", appId, apiKey, apiSecret)
 //                .signatureWs("0", "xdeepseekr1", appId, apiKey, apiSecret)
-                .signatureHttp("0", "xdeepseekr1", apiKey)
+//                .signatureHttp("0", "xdeepseekr1", apiKey)
                 .wsUrl("wss://maas-api.cn-huabei-1.xf-yun.com/v1.1/chat")
 //                .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1")
                 .connectTimeout(60, TimeUnit.SECONDS)
