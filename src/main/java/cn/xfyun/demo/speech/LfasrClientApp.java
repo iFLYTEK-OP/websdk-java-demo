@@ -44,7 +44,8 @@ public class LfasrClientApp {
      * - 远程Url（配合参数audioMode = urlLink使用、调用uploadUrl方法）
      */
     private static String audioFilePath;
-    private static String audioUrl = "https://openres.xfyun.cn/xfyundoc/2025-03-19/e7b6a79d-124f-44e0-b8aa-0e799410f453/1742353716311/lfasr.wav";
+
+    private static final String AUDIO_URL = "https://openres.xfyun.cn/xfyundoc/2025-03-19/e7b6a79d-124f-44e0-b8aa-0e799410f453/1742353716311/lfasr.wav";
 
     /**
      * 任务类型
@@ -53,7 +54,7 @@ public class LfasrClientApp {
      * - predict：质检（配合控制台质检词库使用）
      * - transfer,predict：转写 + 质检
      */
-    private static String taskType = "transfer";
+    private static final String TASK_TYPE = "transfer";
 
     static {
         try {
@@ -65,17 +66,16 @@ public class LfasrClientApp {
 
     public static void main(String[] args) throws SignatureException, InterruptedException {
         // 1、创建客户端实例
-        LfasrClient lfasrClient = new LfasrClient
-                .Builder(APP_ID, SECRET_KEY)
+        LfasrClient lfasrClient = new LfasrClient.Builder(APP_ID, SECRET_KEY)
                 // .roleType((short) 1)
                 // .transLanguage("en")
-                // .audioMode("urlLink")
+                .audioMode("urlLink")
                 .build();
 
         // 2、上传音频文件（本地/Url）
         logger.info("音频上传中...");
-        LfasrResponse uploadResponse = lfasrClient.uploadFile(audioFilePath);
-        // LfasrResponse uploadResponse = lfasrClient.uploadUrl(audioUrl);
+        // LfasrResponse uploadResponse = lfasrClient.uploadFile(audioFilePath);
+        LfasrResponse uploadResponse = lfasrClient.uploadUrl(AUDIO_URL);
         if (uploadResponse == null) {
             logger.error("上传失败，响应为空");
             return;
@@ -91,7 +91,7 @@ public class LfasrClientApp {
         int status = LfasrOrderStatusEnum.CREATED.getKey();
         // 循环直到订单完成或失败
         while (status != LfasrOrderStatusEnum.COMPLETED.getKey() && status != LfasrOrderStatusEnum.FAILED.getKey()) {
-            LfasrResponse resultResponse = lfasrClient.getResult(orderId, taskType);
+            LfasrResponse resultResponse = lfasrClient.getResult(orderId, TASK_TYPE);
             if (!StringUtils.equals(resultResponse.getCode(), "000000")) {
                 logger.error("转写任务失败，错误码：{}，错误信息：{}", resultResponse.getCode(), resultResponse.getDescInfo());
                 return;
@@ -130,12 +130,12 @@ public class LfasrClientApp {
     }
 
     private static void printResult(LfasrResponse resultResponse) {
-        switch (taskType) {
+        switch (TASK_TYPE) {
             case "transfer":
                 parseOrderResult(resultResponse.getContent().getOrderResult());
                 break;
             case "translate":
-                parseTransResult(resultResponse.getContent().getOrderResult(), resultResponse.getContent().getTransResult());
+                parseTransResult(resultResponse.getContent().getTransResult());
                 break;
             case "predict":
                 parsePredictResult(resultResponse.getContent().getPredictResult());
@@ -145,7 +145,7 @@ public class LfasrClientApp {
                 parsePredictResult(resultResponse.getContent().getPredictResult());
                 break;
             default:
-                logger.warn("未知的任务类型：{}", taskType);
+                logger.warn("未知的任务类型：{}", TASK_TYPE);
                 break;
         }
     }
@@ -166,11 +166,9 @@ public class LfasrClientApp {
     /**
      * 解析翻译结果
      */
-    private static void parseTransResult(String orderResultStr, String transResultStr) {
+    private static void parseTransResult(String transResultStr) {
         Gson gson = new Gson();
         try {
-            LfasrOrderResult orderResult = gson.fromJson(orderResultStr, LfasrOrderResult.class);
-            logger.info("原始结果：\n{}", getLatticeText(orderResult.getLattice()));
             Type transResultListType = new TypeToken<List<LfasrTransResult>>() {
             }.getType();
             List<LfasrTransResult> transResultList = gson.fromJson(transResultStr, transResultListType);
