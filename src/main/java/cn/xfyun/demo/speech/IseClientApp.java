@@ -13,8 +13,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.security.SignatureException;
 import java.util.Base64;
 import java.util.Objects;
@@ -87,13 +87,9 @@ public class IseClientApp {
 
         @Override
         public void onSuccess(WebSocket webSocket, IseResponseData iseResponseData) {
-            try {
-                //解码Base64响应数据并转换为UTF-8字符串、中止JVM
-                logger.info("sid：{}，最终评测结果：{}{}", iseResponseData.getSid(), System.lineSeparator(), new String(decoder.decode(iseResponseData.getData().getData()), "UTF-8"));
-                System.exit(0);
-            } catch (UnsupportedEncodingException e) {
-                logger.error("解码失败", e);
-            }
+            //解码Base64响应数据并转换为UTF-8字符串、中止JVM
+            logger.info("sid：{}，最终评测结果：{}{}", iseResponseData.getSid(), System.lineSeparator(), new String(decoder.decode(iseResponseData.getData().getData()), StandardCharsets.UTF_8));
+            System.exit(0);
         }
 
         @Override
