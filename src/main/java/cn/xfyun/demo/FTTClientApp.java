@@ -34,11 +34,11 @@ public class FTTClientApp {
 
     public static void main(String[] args) throws Exception {
         FTTClient client = new FTTClient.Builder()
-//                .signatureWs("0", "xdeepseekv3", appId, apiKey, apiSecret)
+                .signatureWs("0", "xdeepseekv3", appId, apiKey, apiSecret)
 //                .signatureWs("0", "xdeepseekr1", appId, apiKey, apiSecret)
                 .signatureHttp("0", "xdeepseekr1", apiKey)
-//                .wsUrl("wss://maas-api.cn-huabei-1.xf-yun.com/v1.1/chat")
-                .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1")
+                .wsUrl("wss://maas-api.cn-huabei-1.xf-yun.com/v1.1/chat")
+//                .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1")
                 .connectTimeout(60, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
                 .build();
@@ -66,7 +66,7 @@ public class FTTClientApp {
         messages.add(roleContent3);
         messages.add(roleContent4);
 
-       /* SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
         Date dateBegin = new Date();
 
         StringBuffer finalResult = new StringBuffer();
@@ -115,13 +115,13 @@ public class FTTClientApp {
             public void onFail(WebSocket webSocket, Throwable t, Response response) {
                 client.closeWebsocket();
             }
-        });*/
+        });
 
         //post方式
-        String result = client.send(messages);
-        logger.debug("{} 模型返回结果 ==>{}", client.getDomain(), result);
-        JSONObject obj = JSON.parseObject(result);
-        String content = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
-        logger.info("{} 大模型回复内容 ==>{}", client.getDomain(), content);
+//        String result = client.send(messages);
+//        logger.debug("{} 模型返回结果 ==>{}", client.getDomain(), result);
+//        JSONObject obj = JSON.parseObject(result);
+//        String content = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
+//        logger.info("{} 大模型回复内容 ==>{}", client.getDomain(), content);
     }
 }
