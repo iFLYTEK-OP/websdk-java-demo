@@ -31,6 +31,8 @@ import java.util.concurrent.TimeUnit;
 public class LfasrClientApp {
 
     private static final Logger logger = LoggerFactory.getLogger(LfasrClientApp.class);
+    
+    private static final Gson GSON = new Gson();
 
     /**
      * 服务鉴权参数
@@ -58,7 +60,7 @@ public class LfasrClientApp {
 
     static {
         try {
-            audioFilePath = Objects.requireNonNull(LfasrClientApp.class.getResource("/")).toURI().getPath() + "/audio/lfasr.wav";
+            audioFilePath = Objects.requireNonNull(LfasrClientApp.class.getResource("/")).toURI().getPath() + "/audio/lfasr_max.wav";
         } catch (Exception e) {
             logger.error("资源路径获取失败", e);
         }
@@ -67,15 +69,15 @@ public class LfasrClientApp {
     public static void main(String[] args) throws SignatureException, InterruptedException {
         // 1、创建客户端实例
         LfasrClient lfasrClient = new LfasrClient.Builder(APP_ID, SECRET_KEY)
-                // .roleType((short) 1)
+                 .roleType((short) 1)
                 // .transLanguage("en")
-                .audioMode("urlLink")
+//                .audioMode("urlLink")
                 .build();
 
         // 2、上传音频文件（本地/Url）
         logger.info("音频上传中...");
-        // LfasrResponse uploadResponse = lfasrClient.uploadFile(audioFilePath);
-        LfasrResponse uploadResponse = lfasrClient.uploadUrl(AUDIO_URL);
+         LfasrResponse uploadResponse = lfasrClient.uploadFile(audioFilePath);
+//        LfasrResponse uploadResponse = lfasrClient.uploadUrl(AUDIO_URL);
         if (uploadResponse == null) {
             logger.error("上传失败，响应为空");
             return;
@@ -154,9 +156,8 @@ public class LfasrClientApp {
      * 解析转写结果
      */
     private static void parseOrderResult(String orderResultStr) {
-        Gson gson = new Gson();
         try {
-            LfasrOrderResult orderResult = gson.fromJson(orderResultStr, LfasrOrderResult.class);
+            LfasrOrderResult orderResult = GSON.fromJson(orderResultStr, LfasrOrderResult.class);
             logger.info("转写结果：\n{}", getLatticeText(orderResult.getLattice()));
         } catch (Exception e) {
             logger.error("转写结果解析失败", e);
@@ -167,11 +168,10 @@ public class LfasrClientApp {
      * 解析翻译结果
      */
     private static void parseTransResult(String transResultStr) {
-        Gson gson = new Gson();
         try {
             Type transResultListType = new TypeToken<List<LfasrTransResult>>() {
             }.getType();
-            List<LfasrTransResult> transResultList = gson.fromJson(transResultStr, transResultListType);
+            List<LfasrTransResult> transResultList = GSON.fromJson(transResultStr, transResultListType);
             logger.info("翻译结果：{}", getTranslationText(transResultList));
         } catch (Exception e) {
             logger.error("翻译结果解析失败", e);
@@ -182,9 +182,8 @@ public class LfasrClientApp {
      * 解析质检结果
      */
     private static void parsePredictResult(String predictResultStr) {
-        Gson gson = new Gson();
         try {
-            LfasrPredictResult predictResult = gson.fromJson(predictResultStr, LfasrPredictResult.class);
+            LfasrPredictResult predictResult = GSON.fromJson(predictResultStr, LfasrPredictResult.class);
             logger.info("质检结果：{}", predictResult);
         } catch (Exception e) {
             logger.error("质检结果解析失败", e);

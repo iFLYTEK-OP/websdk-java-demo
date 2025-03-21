@@ -39,14 +39,14 @@ public class IseClientApp {
     /**
      * 服务鉴权参数
      */
-    private static final String appId = PropertiesConfig.getAppId();
-    private static final String apiKey = PropertiesConfig.getApiKey();
-    private static final String apiSecret = PropertiesConfig.getApiSecret();
+    private static final String APP_ID = PropertiesConfig.getAppId();
+    private static final String API_KEY = PropertiesConfig.getApiKey();
+    private static final String API_SECRET = PropertiesConfig.getApiSecret();
 
     /**
      * 解码器
      */
-    private static final Base64.Decoder decoder = Base64.getDecoder();
+    private static final Base64.Decoder DECODER = Base64.getDecoder();
 
     /**
      * 音频文件路径
@@ -56,11 +56,11 @@ public class IseClientApp {
     /**
      * 语音评测客户端
      */
-    private static IseClient iseClient;
+    private static final IseClient ISE_CLIENT;
 
     static {
-        iseClient = new IseClient.Builder()
-                .signature(appId, apiKey, apiSecret)
+        ISE_CLIENT = new IseClient.Builder()
+                .signature(APP_ID, API_KEY, API_SECRET)
                 .addSub("ise")
                 .addEnt("cn_vip")
                 .addCategory("read_sentence")
@@ -83,12 +83,12 @@ public class IseClientApp {
      * 1、成功回调：解码Base64格式的评测结果并输出；
      * 2、失败回调：记录通信异常状态。
      */
-    private static final AbstractIseWebSocketListener iseListener = new AbstractIseWebSocketListener() {
+    private static final AbstractIseWebSocketListener ISE_LISTENER = new AbstractIseWebSocketListener() {
 
         @Override
         public void onSuccess(WebSocket webSocket, IseResponseData iseResponseData) {
             //解码Base64响应数据并转换为UTF-8字符串、中止JVM
-            logger.info("sid：{}，最终评测结果：{}{}", iseResponseData.getSid(), System.lineSeparator(), new String(decoder.decode(iseResponseData.getData().getData()), StandardCharsets.UTF_8));
+            logger.info("sid：{}，最终评测结果：{}{}", iseResponseData.getSid(), System.lineSeparator(), new String(DECODER.decode(iseResponseData.getData().getData()), StandardCharsets.UTF_8));
             System.exit(0);
         }
 
@@ -115,7 +115,7 @@ public class IseClientApp {
     public static void processAudioFromFile() {
         try {
             File file = new File(audioFilePath);
-            iseClient.send(file, iseListener);
+            ISE_CLIENT.send(file, ISE_LISTENER);
         } catch (FileNotFoundException e) {
             logger.error("音频文件未找到，路径为：{}", audioFilePath, e);
             throw new RuntimeException("音频文件加载失败，请检查路径：" + audioFilePath);
@@ -135,7 +135,7 @@ public class IseClientApp {
         MicrophoneRecorderUtil recorder = null;
 
         try (Scanner scanner = new Scanner(System.in)) {
-            logger.info("本次评测内容为【{}】，按回车开始实时评测...", iseClient.getText().replace("\uFEFF", ""));
+            logger.info("本次评测内容为【{}】，按回车开始实时评测...", ISE_CLIENT.getText().replace("\uFEFF", ""));
             scanner.nextLine();
 
             // 创建带缓冲的音频管道流
@@ -149,7 +149,7 @@ public class IseClientApp {
             recorder.startRecording(audioOutputStream);
 
             // 调用评测服务
-            iseClient.send(audioInputStream, iseListener);
+            ISE_CLIENT.send(audioInputStream, ISE_LISTENER);
 
             logger.info("正在聆听，按回车结束评测...");
             scanner.nextLine();

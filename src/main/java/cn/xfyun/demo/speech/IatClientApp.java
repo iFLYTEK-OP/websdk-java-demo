@@ -41,9 +41,9 @@ public class IatClientApp {
     /**
      * 服务鉴权参数
      */
-    private static final String appId = PropertiesConfig.getAppId();
-    private static final String apiKey = PropertiesConfig.getApiKey();
-    private static final String apiSecret = PropertiesConfig.getApiSecret();
+    private static final String APP_ID = PropertiesConfig.getAppId();
+    private static final String API_KEY = PropertiesConfig.getApiKey();
+    private static final String API_SECRET = PropertiesConfig.getApiSecret();
 
     /**
      * 音频文件路径
@@ -53,18 +53,18 @@ public class IatClientApp {
     /**
      * 记录操作耗时与完整结果
      */
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
+    private static final SimpleDateFormat SDF = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
     private static Date dateBegin;
     private static List<Text> resultSegments;
 
     /**
      * 语音听写客户端
      */
-    private static IatClient iatClient;
+    private static final IatClient IAT_CLIENT;
 
     static {
-        iatClient = new IatClient.Builder()
-                .signature(appId, apiKey, apiSecret)
+        IAT_CLIENT = new IatClient.Builder()
+                .signature(APP_ID, API_KEY, API_SECRET)
                 // 动态修正功能：值为wpgs时代表开启（包含修正功能的）流式听写
                 .dwa("wpgs")
                 .build();
@@ -82,7 +82,7 @@ public class IatClientApp {
      * 1、成功回调：解析中间/最终结果，处理错误码；
      * 2、失败回调：自定义处理（记录通信异常等）。
      */
-    private static final AbstractIatWebSocketListener iatListener = new AbstractIatWebSocketListener() {
+    private static final AbstractIatWebSocketListener IAT_LISTENER = new AbstractIatWebSocketListener() {
 
         @Override
         public void onSuccess(WebSocket webSocket, IatResponse iatResponse) {
@@ -105,9 +105,9 @@ public class IatClientApp {
                     // resp.data.status ==2 说明数据全部返回完毕，可以关闭连接，释放资源
                     logger.info("session end ");
                     Date dateEnd = new Date();
-                    logger.info("识别开始时间：{}，识别结束时间：{}，总耗时：{}ms", sdf.format(dateBegin), sdf.format(dateEnd), dateEnd.getTime() - dateBegin.getTime());
+                    logger.info("识别开始时间：{}，识别结束时间：{}，总耗时：{}ms", SDF.format(dateBegin), SDF.format(dateEnd), dateEnd.getTime() - dateBegin.getTime());
                     logger.info("最终识别结果：【{}】，本次识别sid：{}", getFinalResult(), iatResponse.getSid());
-                    iatClient.closeWebsocket();
+                    IAT_CLIENT.closeWebsocket();
                     System.exit(0);
                 } else {
                     // 根据返回的数据自定义处理逻辑
@@ -140,7 +140,7 @@ public class IatClientApp {
 
         try {
             File file = new File(audioFilePath);
-            iatClient.send(file, iatListener);
+            IAT_CLIENT.send(file, IAT_LISTENER);
         } catch (FileNotFoundException e) {
             logger.error("音频文件未找到，路径：{}", audioFilePath, e);
             throw new RuntimeException("音频文件加载失败，请检查路径：" + audioFilePath);
@@ -176,7 +176,7 @@ public class IatClientApp {
             recorder.startRecording(audioOutputStream);
 
             // 调用流式听写服务
-            iatClient.send(audioInputStream, iatListener);
+            IAT_CLIENT.send(audioInputStream, IAT_LISTENER);
 
             logger.info("正在聆听，按回车结束听写...");
             scanner.nextLine();

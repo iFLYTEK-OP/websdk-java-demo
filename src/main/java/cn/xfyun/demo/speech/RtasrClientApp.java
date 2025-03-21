@@ -53,12 +53,12 @@ public class RtasrClientApp {
     /**
      * 音频文件路径
      */
-    private static String audioFilePath = "audio/rtasr.pcm";
+    private static String audioFilePath;
 
     /**
      * 语音转写客户端
      */
-    private static RtasrClient rtasrClient;
+    private static final RtasrClient RTASR_CLIENT;
 
     /**
      * 线程同步
@@ -71,7 +71,7 @@ public class RtasrClientApp {
     private static StringBuffer finalResult;
 
     static {
-        rtasrClient = new RtasrClient.Builder()
+        RTASR_CLIENT = new RtasrClient.Builder()
                 .signature(APP_ID, API_KEY).build();
 
         try {
@@ -87,7 +87,7 @@ public class RtasrClientApp {
      * 1、成功回调：解析转写结果并输出；
      * 2、连接异常、业务异常和服务端关闭的回调：退出主线程，中止JVM。
      */
-    private static final AbstractRtasrWebSocketListener rtasrWebSocketListener = new AbstractRtasrWebSocketListener() {
+    private static final AbstractRtasrWebSocketListener RTASR_LISTENER = new AbstractRtasrWebSocketListener() {
 
         @Override
         public void onSuccess(WebSocket webSocket, String text) {
@@ -149,7 +149,7 @@ public class RtasrClientApp {
             File file = new File(audioFilePath);
             inputStream = new FileInputStream(file);
             latch = new CountDownLatch(1);
-            rtasrClient.send(inputStream, rtasrWebSocketListener);
+            RTASR_CLIENT.send(inputStream, RTASR_LISTENER);
 
             latch.await();
         } catch (FileNotFoundException e) {
@@ -188,7 +188,7 @@ public class RtasrClientApp {
             inputStream.read(buffer);
 
             latch = new CountDownLatch(1);
-            rtasrClient.send(buffer, inputStream, rtasrWebSocketListener);
+            RTASR_CLIENT.send(buffer, inputStream, RTASR_LISTENER);
             latch.await();
         } catch (FileNotFoundException e) {
             logger.error("音频文件未找到，路径：{}", audioFilePath, e);
@@ -223,7 +223,7 @@ public class RtasrClientApp {
         latch = new CountDownLatch(1);
 
         try {
-            WebSocket webSocket = rtasrClient.newWebSocket(rtasrWebSocketListener);
+            WebSocket webSocket = RTASR_CLIENT.newWebSocket(RTASR_LISTENER);
 
             try (RandomAccessFile raf = new RandomAccessFile(new File(audioFilePath), "r")) {
                 byte[] bytes = new byte[1280];
@@ -250,7 +250,7 @@ public class RtasrClientApp {
                     TimeUnit.MILLISECONDS.sleep(40);
                 }
                 // 发送结束标识
-                rtasrClient.sendEnd();
+                RTASR_CLIENT.sendEnd();
             }
             latch.await();
         } catch (FileNotFoundException e) {
@@ -290,7 +290,7 @@ public class RtasrClientApp {
 
             // 初始化倒计时锁并启动流式读写
             latch = new CountDownLatch(1);
-            rtasrClient.send(audioInputStream, rtasrWebSocketListener);
+            RTASR_CLIENT.send(audioInputStream, RTASR_LISTENER);
 
             logger.info("正在聆听，按回车结束转写...");
             scanner.nextLine();
@@ -316,7 +316,7 @@ public class RtasrClientApp {
         // 处理转写结果等待
         try {
             // 发送结束标识并等待结果
-            rtasrClient.sendEnd();
+            RTASR_CLIENT.sendEnd();
             if (latch != null) {
                 latch.await();
             }
