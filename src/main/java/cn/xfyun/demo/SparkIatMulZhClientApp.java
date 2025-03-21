@@ -64,7 +64,7 @@ public class SparkIatMulZhClientApp {
         sparkIatClient.send(file, new AbstractSparkIatWebSocketListener() {
             @Override
             public void onSuccess(WebSocket webSocket, SparkIatResponse resp) {
-                logger.info("{}", JSON.toJSONString(resp));
+                // logger.debug("{}", JSON.toJSONString(resp));
                 if (resp.getHeader().getCode() != 0) {
                     logger.error("code=>{}，error=>{}，sid=>{}", resp.getHeader().getCode(), resp.getHeader().getMessage(), resp.getHeader().getSid());
                     logger.warn("错误码查询链接：https://www.xfyun.cn/document/error-code");
