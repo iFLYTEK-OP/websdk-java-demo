@@ -36,7 +36,7 @@ public class VoiceCloneClientApp {
 
     static {
         try {
-            filePath = "audio/" + UUID.randomUUID() + ".mp3";
+            filePath = "audio/voiceclone_" + UUID.randomUUID() + ".mp3";
             resourcePath = VoiceCloneClientApp.class.getResource("/").toURI().getPath();
         } catch (URISyntaxException e) {
             logger.error("获取资源路径失败", e);
@@ -45,15 +45,17 @@ public class VoiceCloneClientApp {
 
 
     public static void main(String[] args) throws MalformedURLException, SignatureException, UnsupportedEncodingException, FileNotFoundException {
+        String text = "欢迎使用本语音合成测试文本，本测试旨在全面检验语音合成系统在准确性、流畅性以及自然度等多方面的性能表现。";
         VoiceCloneClient voiceCloneClient = new VoiceCloneClient.Builder()
                 .signature(appId, apiKey, apiSecret)
                 .languageId(VoiceCloneLangEnum.CN.code())
+                .encoding("lame")
                 .resId("123456")
                 .build();
 
         File file = new File(resourcePath + filePath);
         try {
-            voiceCloneClient.send("一句话复刻接口将文字信息转化为声音信息", new AbstractVoiceCloneWebSocketListener(file) {
+            voiceCloneClient.send(text, new AbstractVoiceCloneWebSocketListener(file) {
                 @Override
                 public void onSuccess(byte[] bytes) {
                     logger.info("success");
@@ -73,7 +75,7 @@ public class VoiceCloneClientApp {
 
                 @Override
                 public void onClose(WebSocket webSocket, int code, String reason) {
-                    logger.error("连接关闭，原因：" + reason);
+                    logger.info("连接关闭，原因：" + reason);
                     System.exit(0);
                 }
             });

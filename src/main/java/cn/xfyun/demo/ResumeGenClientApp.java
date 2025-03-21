@@ -25,7 +25,7 @@ public class ResumeGenClientApp {
     public static void main(String[] args) throws Exception {
         ResumeGenClient client = new ResumeGenClient
                 .Builder(appId, apiKey, apiSecret)
-                .connectTimeout(60000)
+                .connectTimeout(70000)
                 .readTimeout(10000)
                 .build();
 
