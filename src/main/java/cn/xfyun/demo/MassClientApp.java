@@ -1,14 +1,12 @@
 package cn.xfyun.demo;
 
 import cn.hutool.json.JSONUtil;
-import cn.xfyun.api.FTTClient;
+import cn.xfyun.api.MassClient;
 import cn.xfyun.config.PropertiesConfig;
 import cn.xfyun.model.RoleContent;
-import cn.xfyun.model.finetuning.response.FTTResponse;
-import cn.xfyun.service.finetuning.AbstractFTTWebSocketListener;
+import cn.xfyun.model.finetuning.response.MassResponse;
+import cn.xfyun.service.finetuning.AbstractMassWebSocketListener;
 import cn.xfyun.util.StringUtils;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import org.slf4j.Logger;
@@ -18,29 +16,26 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * （fine-tuning-text）精练大模型文本对话
  * 1、APPID、APISecret、APIKey信息获取：https://training.xfyun.cn/model/add
  * 2、文档地址：https://www.xfyun.cn/doc/spark/%E7%B2%BE%E8%B0%83%E6%9C%8D%E5%8A%A1API-websocket.html
  */
-public class FTTClientApp {
-    private static final Logger logger = LoggerFactory.getLogger(FTTClientApp.class);
+public class MassClientApp {
+    private static final Logger logger = LoggerFactory.getLogger(MassClientApp.class);
     private static final String appId = PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
     private static final String apiSecret = PropertiesConfig.getApiSecret();
 
 
     public static void main(String[] args) throws Exception {
-        FTTClient client = new FTTClient.Builder()
+        MassClient client = new MassClient.Builder()
                 .signatureWs("0", "xdeepseekv3", appId, apiKey, apiSecret)
-//                .signatureWs("0", "xdeepseekr1", appId, apiKey, apiSecret)
-//                .signatureHttp("0", "xdeepseekr1", apiKey)
+                // .signatureWs("0", "xdeepseekr1", appId, apiKey, apiSecret)
+                // .signatureHttp("0", "xdeepseekr1", apiKey)
                 .wsUrl("wss://maas-api.cn-huabei-1.xf-yun.com/v1.1/chat")
-//                .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1")
-                .connectTimeout(60, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
+                // .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1")
                 .build();
 
         List<RoleContent> messages = new ArrayList<>();
@@ -71,9 +66,9 @@ public class FTTClientApp {
 
         StringBuffer finalResult = new StringBuffer();
         StringBuffer thingkingResult = new StringBuffer();
-        client.send(messages, new AbstractFTTWebSocketListener() {
+        client.send(messages, new AbstractMassWebSocketListener() {
             @Override
-            public void onSuccess(WebSocket webSocket, FTTResponse resp) {
+            public void onSuccess(WebSocket webSocket, MassResponse resp) {
                 logger.debug("中间返回json结果 ==>{}", JSONUtil.toJsonStr(resp));
                 if (resp.getHeader().getCode() != 0) {
                     logger.error("code=>{}，error=>{}，sid=>{}", resp.getHeader().getCode(), resp.getHeader().getMessage(), resp.getHeader().getSid());
@@ -82,7 +77,7 @@ public class FTTClientApp {
                 }
 
                 if (null != resp.getPayload() && null != resp.getPayload().getChoices()) {
-                    List<FTTResponse.Payload.Choices.Text> text = resp.getPayload().getChoices().getText();
+                    List<MassResponse.Payload.Choices.Text> text = resp.getPayload().getChoices().getText();
                     if (null != text && !text.isEmpty()) {
                         String content = resp.getPayload().getChoices().getText().get(0).getContent();
                         String reasonContent = resp.getPayload().getChoices().getText().get(0).getReasoning_content();
@@ -117,11 +112,11 @@ public class FTTClientApp {
             }
         });
 
-        //post方式
-//        String result = client.send(messages);
-//        logger.debug("{} 模型返回结果 ==>{}", client.getDomain(), result);
-//        JSONObject obj = JSON.parseObject(result);
-//        String content = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
-//        logger.info("{} 大模型回复内容 ==>{}", client.getDomain(), content);
+        // post方式
+        // String result = client.send(messages);
+        // logger.debug("{} 模型返回结果 ==>{}", client.getDomain(), result);
+        // JSONObject obj = JSON.parseObject(result);
+        // String content = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
+        // logger.info("{} 大模型回复内容 ==>{}", client.getDomain(), content);
     }
 }
