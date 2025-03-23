@@ -152,8 +152,6 @@ public class SparkIatZhClientApp {
                 System.exit(0);
             }
         });
-
-        TimeUnit.MILLISECONDS.sleep(30000);
     }
 
     private static String getLastResult(Map<Integer, String> contentMap) {

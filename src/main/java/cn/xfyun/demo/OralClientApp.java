@@ -1,6 +1,7 @@
 package cn.xfyun.demo;
 
 import cn.xfyun.api.OralClient;
+import cn.xfyun.config.AudioPlayer;
 import cn.xfyun.config.PropertiesConfig;
 import cn.xfyun.model.oral.response.OralResponse;
 import cn.xfyun.service.oral.AbstractOralWebSocketListener;
@@ -50,6 +51,9 @@ public class OralClientApp {
 
         File file = new File(resourcePath + filePath);
         try {
+            // 开启语音实时播放
+            AudioPlayer audioPlayer = new AudioPlayer();
+            audioPlayer.start();
             oralClient.send("我是科大讯飞超拟人, 请问有什么可以帮到您", new AbstractOralWebSocketListener(file) {
                 @Override
                 public void onSuccess(byte[] bytes) {
@@ -59,19 +63,27 @@ public class OralClientApp {
                 @Override
                 public void onClose(WebSocket webSocket, int code, String reason) {
                     logger.info("关闭连接,code是{},reason:{}", code, reason);
+                    audioPlayer.stop();
                     System.exit(0);
                 }
 
                 @Override
                 public void onFail(WebSocket webSocket, Throwable throwable, Response response) {
                     logger.error(throwable.getMessage());
+                    audioPlayer.stop();
                     System.exit(0);
                 }
 
                 @Override
                 public void onBusinessFail(WebSocket webSocket, OralResponse response) {
                     logger.error(response.toString());
+                    audioPlayer.stop();
                     System.exit(0);
+                }
+
+                @Override
+                public void onPlay(byte[] bytes) {
+                    audioPlayer.play(bytes);
                 }
             });
         } catch (Exception e) {

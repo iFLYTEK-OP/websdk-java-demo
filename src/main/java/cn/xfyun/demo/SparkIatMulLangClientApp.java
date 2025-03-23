@@ -21,6 +21,7 @@ import java.security.SignatureException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -50,7 +51,7 @@ public class SparkIatMulLangClientApp {
         SparkIatClient sparkIatClient = new SparkIatClient.Builder()
                 .signature(appId, apiKey, apiSecret, SparkIatModelEnum.MUL_CN_MANDARIN.getCode())
                 // 流式实时返回撰写结果
-                // .dwa("wpgs")
+                .dwa("wpgs")
                 .build();
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
@@ -61,6 +62,7 @@ public class SparkIatMulLangClientApp {
 
         // 存储流式返回结果的Map sn -> content
         Map<Integer, String> contentMap = new TreeMap<>();
+        AtomicBoolean isEnd = new AtomicBoolean(false);
         sparkIatClient.send(file, new AbstractSparkIatWebSocketListener() {
             @Override
             public void onSuccess(WebSocket webSocket, SparkIatResponse resp) {
@@ -73,7 +75,7 @@ public class SparkIatMulLangClientApp {
 
                 if (resp.getPayload() != null) {
                     // 非流式实时返回结果处理方式
-                    if (resp.getPayload().getResult() != null) {
+                    /*if (resp.getPayload().getResult() != null) {
                         String tansTxt = resp.getPayload().getResult().getText();
                         if (null != tansTxt) {
                             // 解码转写结果
@@ -92,10 +94,10 @@ public class SparkIatMulLangClientApp {
                             finalResult.append(text);
                             logger.info("中间识别结果 ==>{}", text);
                         }
-                    }
+                    }*/
 
                     // 流式实时返回结果处理方式
-                    /*if (null != resp.getPayload().getResult().getText()) {
+                    if (null != resp.getPayload().getResult().getText()) {
                         byte[] decodedBytes = Base64.getDecoder().decode(resp.getPayload().getResult().getText());
                         String decodeRes = new String(decodedBytes, StandardCharsets.UTF_8);
                         // logger.info("中间识别结果 ==>{}", decodeRes);
@@ -118,7 +120,7 @@ public class SparkIatMulLangClientApp {
                             contentMap.put(jsonParseText.getSn(), reqResult.toString());
                             logger.info("中间识别结果 【{}】 替换后结果==> {}", reqResult, getLastResult(contentMap));
                         }
-                    }*/
+                    }
 
                     if (resp.getPayload().getResult().getStatus() == 2) {
                         // resp.data.status ==2 说明数据全部返回完毕，可以关闭连接，释放资源
@@ -135,6 +137,7 @@ public class SparkIatMulLangClientApp {
                         }
                         logger.info("本次识别sid ==>{}", resp.getHeader().getSid());
                         sparkIatClient.closeWebsocket();
+                        isEnd.set(Boolean.TRUE);
                         System.exit(0);
                     }
                 }
@@ -142,18 +145,31 @@ public class SparkIatMulLangClientApp {
 
             @Override
             public void onFail(WebSocket webSocket, Throwable t, Response response) {
+                isEnd.set(Boolean.TRUE);
                 logger.error("异常信息: {}", t.getMessage(), t);
                 System.exit(0);
             }
 
             @Override
             public void onClose(WebSocket webSocket, int code, String reason) {
+                isEnd.set(Boolean.TRUE);
                 logger.info("关闭连接,code是{},reason:{}", code, reason);
                 System.exit(0);
             }
         });
-
-        TimeUnit.MILLISECONDS.sleep(30000);
+        // 多语种没有流式返回会开启线程动态打印日志
+        Thread loading = new Thread(() -> {
+            while (!isEnd.get()) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(2500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                logger.info("音频识别中...");
+            }
+        });
+        loading.setName("Logger-SparkIatMulLangClientApp-Thread");
+        loading.start();
     }
 
     private static String getLastResult(Map<Integer, String> contentMap) {

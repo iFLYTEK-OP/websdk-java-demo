@@ -1,6 +1,7 @@
 package cn.xfyun.demo;
 
 import cn.xfyun.api.VoiceCloneClient;
+import cn.xfyun.config.AudioPlayer;
 import cn.xfyun.config.PropertiesConfig;
 import cn.xfyun.config.VoiceCloneLangEnum;
 import cn.xfyun.model.voiceclone.response.VoiceCloneResponse;
@@ -55,6 +56,9 @@ public class VoiceCloneClientApp {
 
         File file = new File(resourcePath + filePath);
         try {
+            // 开启语音实时播放
+            AudioPlayer audioPlayer = new AudioPlayer();
+            audioPlayer.start();
             voiceCloneClient.send(text, new AbstractVoiceCloneWebSocketListener(file) {
                 @Override
                 public void onSuccess(byte[] bytes) {
@@ -64,19 +68,27 @@ public class VoiceCloneClientApp {
                 @Override
                 public void onFail(WebSocket webSocket, Throwable throwable, Response response) {
                     logger.error(throwable.getMessage());
+                    audioPlayer.stop();
                     System.exit(0);
                 }
 
                 @Override
                 public void onBusinessFail(WebSocket webSocket, VoiceCloneResponse response) {
                     logger.error(response.toString());
+                    audioPlayer.stop();
                     System.exit(0);
                 }
 
                 @Override
                 public void onClose(WebSocket webSocket, int code, String reason) {
                     logger.info("连接关闭，原因：" + reason);
+                    audioPlayer.stop();
                     System.exit(0);
+                }
+
+                @Override
+                public void onPlay(byte[] bytes) {
+                    audioPlayer.play(bytes);
                 }
             });
         } catch (Exception e) {
