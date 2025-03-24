@@ -72,7 +72,8 @@ public class RtasrClientApp {
 
     static {
         RTASR_CLIENT = new RtasrClient.Builder()
-                .signature(APP_ID, API_KEY).build();
+                .signature(APP_ID, API_KEY)
+                .build();
 
         try {
             audioFilePath = Objects.requireNonNull(RtasrClientApp.class.getResource("/")).toURI().getPath() + "/audio/rtasr.pcm";
@@ -150,7 +151,6 @@ public class RtasrClientApp {
             inputStream = new FileInputStream(file);
             latch = new CountDownLatch(1);
             RTASR_CLIENT.send(inputStream, RTASR_LISTENER);
-
             latch.await();
         } catch (FileNotFoundException e) {
             logger.error("音频文件未找到，路径：{}", audioFilePath, e);
@@ -183,10 +183,8 @@ public class RtasrClientApp {
         try {
             File file = new File(audioFilePath);
             inputStream = new FileInputStream(file);
-
             byte[] buffer = new byte[1024000];
             inputStream.read(buffer);
-
             latch = new CountDownLatch(1);
             RTASR_CLIENT.send(buffer, inputStream, RTASR_LISTENER);
             latch.await();
@@ -224,7 +222,6 @@ public class RtasrClientApp {
 
         try {
             WebSocket webSocket = RTASR_CLIENT.newWebSocket(RTASR_LISTENER);
-
             try (RandomAccessFile raf = new RandomAccessFile(new File(audioFilePath), "r")) {
                 byte[] bytes = new byte[1280];
                 int len;
@@ -235,7 +232,6 @@ public class RtasrClientApp {
                         webSocket.send(ByteString.of(bytes));
                         break;
                     }
-
                     long curTs = System.currentTimeMillis();
                     if (lastTs == 0) {
                         lastTs = System.currentTimeMillis();
@@ -270,7 +266,6 @@ public class RtasrClientApp {
      * 处理麦克风输入的音频数据
      */
     public static void processAudioFromMicrophone() {
-
         // 处理录音初始化与交互
         MicrophoneRecorderUtil recorder = null;
         PipedInputStream audioInputStream;
@@ -283,11 +278,9 @@ public class RtasrClientApp {
             // 创建带缓冲的音频管道流（管道缓存过大/过小会导致数据发送过快/过慢进而导致服务器引擎出错提前结束WebSocket连接）
             audioInputStream = new PipedInputStream(1280);
             audioOutputStream = new PipedOutputStream(audioInputStream);
-
             // 配置录音工具并启动录音
             recorder = new MicrophoneRecorderUtil();
             recorder.startRecording(audioOutputStream);
-
             // 初始化倒计时锁并启动流式读写
             latch = new CountDownLatch(1);
             RTASR_CLIENT.send(audioInputStream, RTASR_LISTENER);
@@ -366,7 +359,6 @@ public class RtasrClientApp {
                 logger.warn("未知的转写响应类型：{}", type);
                 return tempResult.toString();
             }
-
         } catch (Exception e) {
             return message;
         }

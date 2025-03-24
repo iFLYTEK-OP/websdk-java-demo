@@ -52,17 +52,14 @@ public class MicrophoneRecorderUtil {
         if (outputStream == null) {
             throw new IllegalArgumentException("输出流不能为空");
         }
-
         if (recording || this.outputStream != null) {
             throw new IllegalStateException("已有录音任务在执行中");
         }
-
         this.outputStream = outputStream;
 
         // 配置音频格式
         AudioFormat format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
         DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
-
         // 获取系统录音设备数据线路，应用音频格式配置，开始采集音频数据
         try {
             targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
@@ -72,7 +69,6 @@ public class MicrophoneRecorderUtil {
             cleanupResources();
             throw e;
         }
-
         // 启动独立录音线程
         Thread captureThread = new Thread(this::captureAudio);
         captureThread.setUncaughtExceptionHandler((thread, throwable) -> {
@@ -104,7 +100,6 @@ public class MicrophoneRecorderUtil {
                 }
             }
         }
-
         cleanupResources();
     }
 
