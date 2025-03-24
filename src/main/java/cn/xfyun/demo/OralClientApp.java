@@ -47,13 +47,17 @@ public class OralClientApp {
         OralClient oralClient = new OralClient.Builder()
                 .signature(appId, apiKey, apiSecret)
                 .vcn("x4_lingfeizhe_oral")
+                .encoding("raw")
                 .build();
 
+        // 合成后音频存储路径
         File file = new File(resourcePath + filePath);
         try {
+
             // 开启语音实时播放
             AudioPlayer audioPlayer = new AudioPlayer();
             audioPlayer.start();
+
             oralClient.send("我是科大讯飞超拟人, 请问有什么可以帮到您", new AbstractOralWebSocketListener(file) {
                 @Override
                 public void onSuccess(byte[] bytes) {

@@ -50,8 +50,8 @@ public class VoiceCloneClientApp {
         VoiceCloneClient voiceCloneClient = new VoiceCloneClient.Builder()
                 .signature(appId, apiKey, apiSecret)
                 .languageId(VoiceCloneLangEnum.CN.code())
-                .encoding("lame")
-                .resId("123456")
+                .encoding("raw")
+                .resId("替换成你的一句话生成的id")
                 .build();
 
         File file = new File(resourcePath + filePath);
