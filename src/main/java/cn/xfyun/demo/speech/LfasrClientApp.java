@@ -60,7 +60,7 @@ public class LfasrClientApp {
 
     static {
         try {
-            audioFilePath = Objects.requireNonNull(LfasrClientApp.class.getResource("/")).toURI().getPath() + "/audio/lfasr_max.wav";
+            audioFilePath = Objects.requireNonNull(LfasrClientApp.class.getResource("/")).toURI().getPath() + "/audio/lfasr.wav";
         } catch (Exception e) {
             logger.error("资源路径获取失败", e);
         }
@@ -69,15 +69,15 @@ public class LfasrClientApp {
     public static void main(String[] args) throws SignatureException, InterruptedException {
         // 1、创建客户端实例
         LfasrClient lfasrClient = new LfasrClient.Builder(APP_ID, SECRET_KEY)
-                 .roleType((short) 1)
+                .roleType((short) 1)
                 // .transLanguage("en")
-//                .audioMode("urlLink")
+                // .audioMode("urlLink")
                 .build();
 
         // 2、上传音频文件（本地/Url）
         logger.info("音频上传中...");
-         LfasrResponse uploadResponse = lfasrClient.uploadFile(audioFilePath);
-//        LfasrResponse uploadResponse = lfasrClient.uploadUrl(AUDIO_URL);
+        LfasrResponse uploadResponse = lfasrClient.uploadFile(audioFilePath);
+        // LfasrResponse uploadResponse = lfasrClient.uploadUrl(AUDIO_URL);
         if (uploadResponse == null) {
             logger.error("上传失败，响应为空");
             return;
@@ -121,10 +121,10 @@ public class LfasrClientApp {
                         return;
                     }
                 } else {
-                    logger.warn("未知的订单状态：{}", status);
+                    logger.error("未知的订单状态：{}", status);
                 }
             } else {
-                logger.warn("返回结果中缺少订单信息");
+                logger.error("返回结果中缺少订单信息");
             }
 
             TimeUnit.SECONDS.sleep(20);
@@ -147,7 +147,7 @@ public class LfasrClientApp {
                 parsePredictResult(resultResponse.getContent().getPredictResult());
                 break;
             default:
-                logger.warn("未知的任务类型：{}", TASK_TYPE);
+                logger.error("未知的任务类型：{}", TASK_TYPE);
                 break;
         }
     }
