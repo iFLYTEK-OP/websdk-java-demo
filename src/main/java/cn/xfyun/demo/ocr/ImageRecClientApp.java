@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.ocr;
 
 import cn.xfyun.api.ImageRecClient;
 import cn.xfyun.config.ImageRecEnum;

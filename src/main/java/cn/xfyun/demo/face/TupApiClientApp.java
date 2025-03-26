@@ -1,22 +1,21 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.face;
 
-import cn.xfyun.api.GeneralWordsClient;
-import cn.xfyun.config.OcrWordsEnum;
+import cn.xfyun.api.TupApiClient;
 import cn.xfyun.config.PropertiesConfig;
+import cn.xfyun.config.TupApiEnum;
 import cn.hutool.core.io.IoUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.Base64;
 
 /**
  * @author mqgao
  * @version 1.0
- * @date 2021/7/21 11:33
+ * @date 2021/7/21 11:58
  */
-public class GeneralWordsClientApp {
+public class TupApiClientApp {
 
     private static final String appId = PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
@@ -26,22 +25,24 @@ public class GeneralWordsClientApp {
 
     static {
         try {
-            resourcePath = GeneralWordsClientApp.class.getResource("/").toURI().getPath();
+            resourcePath = TupApiClientApp.class.getResource("/").toURI().getPath();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
     }
 
+
     public static void main(String[] args) throws Exception {
-        GeneralWordsClient client = new GeneralWordsClient
-                // 印刷文字识别  OcrWordsEnum.PRINT
-                // 手写文字识别  OcrWordsEnum.HANDWRITING
-                .Builder(appId, apiKey, OcrWordsEnum.PRINT)
+        TupApiClient client = new TupApiClient
+                // 年龄      TupApiEnum.AGE
+                // 性别      TupApiEnum.SEX
+                // 表情      TupApiEnum.EXPRESSION
+                // 颜值      TupApiEnum.FACE_SCORE
+                .Builder(appId, apiKey, TupApiEnum.AGE)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] bytes = IoUtil.readBytes(inputStream);
-        String imageBase64 = Base64.getEncoder().encodeToString(bytes);
         System.out.println("请求地址：" + client.getHostUrl());
-        System.out.println(client.generalWords(imageBase64));
+        System.out.println(client.recognition("测试", bytes));
     }
 }

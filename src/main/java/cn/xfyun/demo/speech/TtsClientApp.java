@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.speech;
 
 import cn.xfyun.api.TtsClient;
 import cn.xfyun.config.PropertiesConfig;
