@@ -69,7 +69,7 @@ public class LfasrClientApp {
     public static void main(String[] args) throws SignatureException, InterruptedException {
         // 1、创建客户端实例
         LfasrClient lfasrClient = new LfasrClient.Builder(APP_ID, SECRET_KEY)
-                .roleType((short) 1)
+                // .roleType((short) 1)
                 // .transLanguage("en")
                 // .audioMode("urlLink")
                 .build();
