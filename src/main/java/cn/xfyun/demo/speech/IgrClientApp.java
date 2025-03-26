@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.speech;
 
 import cn.xfyun.api.IgrClient;
 import cn.xfyun.config.PropertiesConfig;
@@ -30,7 +30,7 @@ public class IgrClientApp {
 
     static {
         try {
-            resourcePath = IseClientApp.class.getResource("/").toURI().getPath();
+            resourcePath = IgrClientApp.class.getResource("/").toURI().getPath();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

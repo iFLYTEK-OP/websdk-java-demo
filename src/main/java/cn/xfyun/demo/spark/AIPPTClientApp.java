@@ -1,5 +1,4 @@
-
-package cn.xfyun.demo;
+package cn.xfyun.demo.spark;
 
 import cn.hutool.json.JSONUtil;
 import cn.xfyun.api.AIPPTClient;
