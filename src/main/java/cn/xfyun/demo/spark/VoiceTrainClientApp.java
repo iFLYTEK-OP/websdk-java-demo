@@ -1,5 +1,5 @@
 
-package cn.xfyun.demo;
+package cn.xfyun.demo.spark;
 
 import cn.xfyun.api.VoiceTrainClient;
 import com.alibaba.fastjson.JSONObject;

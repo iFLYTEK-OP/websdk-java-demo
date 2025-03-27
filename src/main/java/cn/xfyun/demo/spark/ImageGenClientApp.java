@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.spark;
 
 import cn.xfyun.api.ImageGenClient;
 import cn.xfyun.config.PropertiesConfig;

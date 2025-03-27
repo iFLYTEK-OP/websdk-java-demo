@@ -1,4 +1,4 @@
-package cn.xfyun.tool;
+package cn.xfyun.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +10,12 @@ import javax.sound.sampled.TargetDataLine;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * @program: websdk-java
- * @description:
- * @author: zyding6
- * @create: 2025/3/24 9:58
- **/
+ * 实时麦克风录音工具类
+ * 支持16kHz采样率、16位深度、单声道PCM格式音频采集；
+ * 基于后台线程提供非阻塞式的录音操作并输出符合语音服务要求的原始音频字节数据。
+ *
+ * @author zyding6
+ */
 public class MicrophoneAudioSender {
 
     private static final Logger logger = LoggerFactory.getLogger(MicrophoneAudioSender.class);

@@ -1,10 +1,10 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.spark;
 
 import cn.xfyun.api.OralClient;
 import cn.xfyun.config.PropertiesConfig;
 import cn.xfyun.model.oral.response.OralResponse;
 import cn.xfyun.service.oral.AbstractOralWebSocketListener;
-import cn.xfyun.tool.AudioPlayer;
+import cn.xfyun.util.AudioPlayer;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import org.slf4j.Logger;

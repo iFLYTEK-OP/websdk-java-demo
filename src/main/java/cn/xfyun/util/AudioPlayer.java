@@ -1,4 +1,4 @@
-package cn.xfyun.tool;
+package cn.xfyun.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +13,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * @program: websdk-java-demo
- * @description:
- * @author: zyding6
- * @create: 2025/3/21 17:39
- **/
+ * 音频调起麦克风播放工具类
+ * 支持16kHz采样率、16位深度、单声道PCM格式音频播放；
+ *
+ * @author zyding6
+ */
 public class AudioPlayer {
     private static final Logger logger = LoggerFactory.getLogger(AudioPlayer.class);
     private final BlockingQueue<byte[]> audioQueue = new LinkedBlockingQueue<>();

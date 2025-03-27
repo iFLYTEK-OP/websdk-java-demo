@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.spark;
 
 import cn.xfyun.api.SparkIatClient;
 import cn.xfyun.config.PropertiesConfig;

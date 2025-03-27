@@ -1,11 +1,11 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.spark;
 
 import cn.xfyun.api.VoiceCloneClient;
 import cn.xfyun.config.PropertiesConfig;
 import cn.xfyun.config.VoiceCloneLangEnum;
 import cn.xfyun.model.voiceclone.response.VoiceCloneResponse;
 import cn.xfyun.service.voiceclone.AbstractVoiceCloneWebSocketListener;
-import cn.xfyun.tool.AudioPlayer;
+import cn.xfyun.util.AudioPlayer;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import org.slf4j.Logger;

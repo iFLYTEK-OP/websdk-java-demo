@@ -1,4 +1,4 @@
-package cn.xfyun.demo;
+package cn.xfyun.demo.spark;
 
 import cn.xfyun.api.SparkIatClient;
 import cn.xfyun.config.PropertiesConfig;
@@ -19,22 +19,20 @@ import java.nio.charset.StandardCharsets;
 import java.security.SignatureException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
- * SPARK_MUL_LANG_IAT( iFly Spark Auto Transform ) 多语种大模型语音听写
- * 1、APPID、APISecret、APIKey信息获取：<a href="https://console.xfyun.cn/services/bmm">...</a>
- * 2、文档地址：<a href="https://www.xfyun.cn/doc/spark/spark_mul_cn_iat.html">...</a>
+ * SPARK_ZH_IAT( iFly Spark Auto Transform ) 方言大模型语音听写
+ * 1、APPID、APISecret、APIKey信息获取：<a href="https://console.xfyun.cn/services/iat_zh_cn_mulacc_slm">...</a>
+ * 2、文档地址：<a href="https://www.xfyun.cn/doc/spark/spark_slm_iat.html">...</a>
  */
-public class SparkIatMulLangClientApp {
-    private static final Logger logger = LoggerFactory.getLogger(SparkIatMulLangClientApp.class);
+public class SparkIatMulZhClientApp {
+    private static final Logger logger = LoggerFactory.getLogger(SparkIatMulZhClientApp.class);
     private static final String appId = PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
     private static final String apiSecret = PropertiesConfig.getApiSecret();
 
-    private static final String filePath = "audio/spark_iat_mul_lang_16k_10.pcm";
+    private static final String filePath = "audio/spark_iat_mul_cn_16k_10.pcm";
     private static String resourcePath;
 
     static {
@@ -48,7 +46,7 @@ public class SparkIatMulLangClientApp {
 
     public static void main(String[] args) throws FileNotFoundException, SignatureException, MalformedURLException, InterruptedException {
         SparkIatClient sparkIatClient = new SparkIatClient.Builder()
-                .signature(appId, apiKey, apiSecret, SparkIatModelEnum.MUL_CN_MANDARIN.getCode())
+                .signature(appId, apiKey, apiSecret, SparkIatModelEnum.ZH_CN_MULACC.getCode())
                 // 流式实时返回撰写结果
                 .dwa("wpgs")
                 .build();
@@ -61,7 +59,6 @@ public class SparkIatMulLangClientApp {
 
         // 存储流式返回结果的Map sn -> content
         Map<Integer, String> contentMap = new TreeMap<>();
-        AtomicBoolean isEnd = new AtomicBoolean(false);
         sparkIatClient.send(file, new AbstractSparkIatWebSocketListener() {
             @Override
             public void onSuccess(WebSocket webSocket, SparkIatResponse resp) {
@@ -136,7 +133,6 @@ public class SparkIatMulLangClientApp {
                         }
                         logger.info("本次识别sid ==>{}", resp.getHeader().getSid());
                         sparkIatClient.closeWebsocket();
-                        isEnd.set(Boolean.TRUE);
                         System.exit(0);
                     }
                 }
@@ -144,31 +140,16 @@ public class SparkIatMulLangClientApp {
 
             @Override
             public void onFail(WebSocket webSocket, Throwable t, Response response) {
-                isEnd.set(Boolean.TRUE);
                 logger.error("异常信息: {}", t.getMessage(), t);
                 System.exit(0);
             }
 
             @Override
             public void onClose(WebSocket webSocket, int code, String reason) {
-                isEnd.set(Boolean.TRUE);
                 logger.info("关闭连接,code是{},reason:{}", code, reason);
                 System.exit(0);
             }
         });
-        // 多语种没有流式返回会开启线程动态打印日志
-        Thread loading = new Thread(() -> {
-            while (!isEnd.get()) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(2500);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                logger.info("音频识别中...");
-            }
-        });
-        loading.setName("Logger-SparkIatMulLangClientApp-Thread");
-        loading.start();
     }
 
     private static String getLastResult(Map<Integer, String> contentMap) {
