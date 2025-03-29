@@ -1,14 +1,17 @@
 package cn.xfyun.demo.spark;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.xfyun.api.MassClient;
 import cn.xfyun.config.PropertiesConfig;
+import cn.xfyun.exception.BusinessException;
 import cn.xfyun.model.RoleContent;
 import cn.xfyun.model.finetuning.response.MassResponse;
 import cn.xfyun.service.finetuning.AbstractMassWebSocketListener;
 import cn.xfyun.util.StringUtils;
-import okhttp3.Response;
-import okhttp3.WebSocket;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +38,7 @@ public class MassClientApp {
                 .signatureWs("0", "xdeepseekr1", appId, apiKey, apiSecret)
                 // .signatureHttp("0", "xdeepseekr1", apiKey)
                 .wsUrl("wss://maas-api.cn-huabei-1.xf-yun.com/v1.1/chat")
-                // .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1")
+                // .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1/chat/completions")
                 .build();
 
         List<RoleContent> messages = new ArrayList<>();
@@ -61,12 +64,17 @@ public class MassClientApp {
         messages.add(roleContent3);
         messages.add(roleContent4);
 
+        // 统计耗时
         SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
         Date dateBegin = new Date();
 
-        StringBuffer finalResult = new StringBuffer();
-        StringBuffer thingkingResult = new StringBuffer();
-        client.send(messages, new AbstractMassWebSocketListener() {
+        // 最终回复结果
+        StringBuilder finalResult = new StringBuilder();
+        // 最终思维链结果
+        StringBuilder thingkingResult = new StringBuilder();
+
+        // ws方式
+        client.sendWs(messages, new AbstractMassWebSocketListener() {
             @Override
             public void onSuccess(WebSocket webSocket, MassResponse resp) {
                 logger.debug("中间返回json结果 ==>{}", JSONUtil.toJsonStr(resp));
@@ -80,7 +88,7 @@ public class MassClientApp {
                     List<MassResponse.Payload.Choices.Text> text = resp.getPayload().getChoices().getText();
                     if (null != text && !text.isEmpty()) {
                         String content = resp.getPayload().getChoices().getText().get(0).getContent();
-                        String reasonContent = resp.getPayload().getChoices().getText().get(0).getReasoning_content();
+                        String reasonContent = resp.getPayload().getChoices().getText().get(0).getReasoningContent();
                         if (!StringUtils.isNullOrEmpty(reasonContent)) {
                             thingkingResult.append(reasonContent);
                             logger.info("思维链结果... ==> {}", reasonContent);
@@ -118,10 +126,104 @@ public class MassClientApp {
         });
 
         // post方式
-        // String result = client.send(messages);
+        // String result = client.sendPost(messages);
         // logger.debug("{} 模型返回结果 ==>{}", client.getDomain(), result);
         // JSONObject obj = JSON.parseObject(result);
         // String content = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
         // logger.info("{} 大模型回复内容 ==>{}", client.getDomain(), content);
+
+        // sse方式
+        // client.sendStream(messages, new Callback() {
+        //     @Override
+        //     public void onFailure(Call call, IOException e) {
+        //         logger.error("sse连接失败：{}", e.getMessage());
+        //         System.exit(0);
+        //     }
+        //
+        //     @Override
+        //     public void onResponse(Call call, Response response) {
+        //         if (!response.isSuccessful()) {
+        //             logger.error("请求失败，状态码：{}，原因：{}", response.code(), response.message());
+        //             System.exit(0);
+        //             return;
+        //         }
+        //         ResponseBody body = response.body();
+        //         if (body != null) {
+        //             BufferedSource source = body.source();
+        //             try {
+        //                 while (true) {
+        //                     String line = source.readUtf8Line();
+        //                     if (line == null) {
+        //                         break;
+        //                     }
+        //                     if (line.startsWith("data:")) {
+        //                         // 去掉前缀 "data: "
+        //                         String data = line.substring(5).trim();
+        //                         if (extractContent(data, finalResult, thingkingResult)) {
+        //                             // 说明数据全部返回完毕，可以关闭连接，释放资源
+        //                             logger.info("session end");
+        //                             Date dateEnd = new Date();
+        //                             logger.info("{}开始", sdf.format(dateBegin));
+        //                             logger.info("{}结束", sdf.format(dateEnd));
+        //                             logger.info("耗时：{}ms", dateEnd.getTime() - dateBegin.getTime());
+        //                             logger.info("完整思维链结果 ==> {}", thingkingResult);
+        //                             logger.info("最终识别结果 ==> {}", finalResult);
+        //                             System.exit(0);
+        //                         }
+        //                     }
+        //                 }
+        //             } catch (IOException e) {
+        //                 logger.error("读取sse返回内容发生异常", e);
+        //             }
+        //         }
+        //     }
+        // });
+    }
+
+    /**
+     * @param data            sse返回的数据
+     * @param finalResult     实时回复内容
+     * @param thingkingResult 实时思维链结果
+     * @return 是否结束
+     */
+    private static boolean extractContent(String data, StringBuilder finalResult, StringBuilder thingkingResult) {
+        logger.debug("sse返回数据 ==> {}", data);
+        try {
+            JSONObject obj = JSON.parseObject(data);
+            JSONObject choice0 = obj.getJSONArray("choices").getJSONObject(0);
+            JSONObject delta = choice0.getJSONObject("delta");
+            // 结束原因
+            String finishReason = choice0.getString("finish_reason");
+            if (StrUtil.isNotEmpty(finishReason)) {
+                if (finishReason.equals("stop")) {
+                    logger.info("本次识别sid ==> {}", obj.getString("id"));
+                    return true;
+                }
+                throw new BusinessException("异常结束: " + finishReason);
+            }
+            // 回复
+            String content = delta.getString("content");
+            if (StrUtil.isNotEmpty(content)) {
+                logger.info("中间结果 ==> {}", content);
+                finalResult.append(content);
+            }
+            // 思维链
+            String reasonContent = delta.getString("reasoning_content");
+            if (StrUtil.isNotEmpty(reasonContent)) {
+                logger.info("思维链结果... ==> {}", reasonContent);
+                thingkingResult.append(reasonContent);
+            }
+            // 插件
+            String pluginContent = delta.getString("plugins_content");
+            if (StrUtil.isNotEmpty(pluginContent)) {
+                logger.info("插件信息 ==> {}", pluginContent);
+            }
+        } catch (BusinessException bx) {
+            throw bx;
+        } catch (Exception e) {
+            logger.error("解析sse返回内容发生异常", e);
+            logger.error("异常数据 ==> {}", data);
+        }
+        return false;
     }
 }

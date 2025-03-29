@@ -49,6 +49,7 @@ public class OralClientApp {
                 .signature(appId, apiKey, apiSecret)
                 .vcn("x4_lingfeizhe_oral")
                 .encoding("raw")
+                .sampleRate(16000)
                 .build();
 
         // 合成后音频存储路径

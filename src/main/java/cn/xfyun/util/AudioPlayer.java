@@ -34,7 +34,7 @@ public class AudioPlayer {
 
     public AudioPlayer() {
         // 默认 16kHz, 16bit, 单声道, PCM
-        this(24000, 16, 1, true, false);
+        this(16000, 16, 1, true, false);
     }
 
     public AudioPlayer(float sampleRate, int sampleSizeInBits, int channels, boolean signed, boolean bigEndian) {
