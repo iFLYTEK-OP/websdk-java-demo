@@ -1,9 +1,10 @@
 package cn.xfyun.demo.spark;
 
-import cn.xfyun.api.OralClient;
+import cn.xfyun.api.VoiceCloneClient;
 import cn.xfyun.config.PropertiesConfig;
-import cn.xfyun.model.oral.response.OralResponse;
-import cn.xfyun.service.oral.AbstractOralWebSocketListener;
+import cn.xfyun.config.VoiceCloneLangEnum;
+import cn.xfyun.model.voiceclone.response.VoiceCloneResponse;
+import cn.xfyun.service.voiceclone.AbstractVoiceCloneWebSocketListener;
 import cn.xfyun.util.AudioPlayer;
 import okhttp3.Response;
 import okhttp3.WebSocket;
@@ -21,13 +22,13 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * （oral-client）超拟人合成
- * 1、APPID、APISecret、APIKey信息获取：<a href="https://console.xfyun.cn/services/uts">...</a>
- * 2、文档地址：<a href="https://www.xfyun.cn/doc/spark/super%20smart-tts.html">...</a>
+ * （voice-clone）一句话复刻
+ * 1、APPID、APISecret、APIKey信息获取：<a href="https://console.xfyun.cn/services/oneSentence">...</a>
+ * 2、文档地址：<a href="https://www.xfyun.cn/doc/spark/reproduction.html">...</a>
  */
-public class OralClientApp {
+public class VoiceCloneClientApp {
 
-    private static final Logger logger = LoggerFactory.getLogger(OralClientApp.class);
+    private static final Logger logger = LoggerFactory.getLogger(VoiceCloneClientApp.class);
     private static final String appId = PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
     private static final String apiSecret = PropertiesConfig.getApiSecret();
@@ -36,22 +37,20 @@ public class OralClientApp {
 
     static {
         try {
-            filePath = "audio/" + UUID.randomUUID() + ".mp3";
-            resourcePath = Objects.requireNonNull(OralClientApp.class.getResource("/")).toURI().getPath();
+            filePath = "audio/voiceclone_" + UUID.randomUUID() + ".mp3";
+            resourcePath = Objects.requireNonNull(VoiceCloneClientApp.class.getResource("/")).toURI().getPath();
         } catch (URISyntaxException e) {
             logger.error("获取资源路径失败", e);
         }
     }
 
     public static void main(String[] args) throws MalformedURLException, SignatureException, UnsupportedEncodingException, FileNotFoundException {
-        OralClient oralClient = new OralClient.Builder()
-                .signature(appId, apiKey, apiSecret)
-                .vcn("x4_lingfeizhe_oral")
+        String text = "欢迎使用本语音合成测试文本，本测试旨在全面检验语音合成系统在准确性、流畅性以及自然度等多方面的性能表现。";
+        VoiceCloneClient voiceCloneClient = new VoiceCloneClient.Builder()
+                .signature("您的一句话复刻生成的声纹Id", VoiceCloneLangEnum.CN, appId, apiKey, apiSecret)
                 .encoding("raw")
-                .sampleRate(16000)
                 .build();
 
-        // 合成后音频存储路径
         File file = new File(resourcePath + filePath);
         try {
 
@@ -59,17 +58,10 @@ public class OralClientApp {
             AudioPlayer audioPlayer = new AudioPlayer();
             audioPlayer.start();
 
-            oralClient.send("我是科大讯飞超拟人, 请问有什么可以帮到您", new AbstractOralWebSocketListener(file) {
+            voiceCloneClient.send(text, new AbstractVoiceCloneWebSocketListener(file) {
                 @Override
                 public void onSuccess(byte[] bytes) {
                     logger.info("success");
-                }
-
-                @Override
-                public void onClose(WebSocket webSocket, int code, String reason) {
-                    logger.info("关闭连接,code是{},reason:{}", code, reason);
-                    audioPlayer.stop();
-                    System.exit(0);
                 }
 
                 @Override
@@ -80,8 +72,15 @@ public class OralClientApp {
                 }
 
                 @Override
-                public void onBusinessFail(WebSocket webSocket, OralResponse response) {
+                public void onBusinessFail(WebSocket webSocket, VoiceCloneResponse response) {
                     logger.error(response.toString());
+                    audioPlayer.stop();
+                    System.exit(0);
+                }
+
+                @Override
+                public void onClose(WebSocket webSocket, int code, String reason) {
+                    logger.info("连接关闭，原因：" + reason);
                     audioPlayer.stop();
                     System.exit(0);
                 }
@@ -89,12 +88,11 @@ public class OralClientApp {
                 @Override
                 public void onMessage(WebSocket webSocket, String text) {
                     super.onMessage(webSocket, text);
-                    OralResponse resp = JSON.fromJson(text, OralResponse.class);
+                    VoiceCloneResponse resp = JSON.fromJson(text, VoiceCloneResponse.class);
                     if (resp != null) {
-                        OralResponse.HeaderBean header = resp.getHeader();
-                        OralResponse.PayloadBean payload = resp.getPayload();
+                        VoiceCloneResponse.PayloadBean payload = resp.getPayload();
 
-                        if (header.getCode() != 0) {
+                        if (resp.getHeader().getCode() != 0) {
                             onBusinessFail(webSocket, resp);
                         }
 
@@ -109,7 +107,7 @@ public class OralClientApp {
                 }
             });
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             logger.error("错误码查询链接：https://www.xfyun.cn/document/error-code");
         }
     }

@@ -12,9 +12,14 @@ import cn.xfyun.util.StringUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import okhttp3.*;
+import okio.BufferedSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.security.SignatureException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,24 +27,18 @@ import java.util.List;
 
 /**
  * （fine-tuning-text）精练大模型文本对话
- * 1、APPID、APISecret、APIKey信息获取：<a href="https://training.xfyun.cn/model/add">...</a>
+ * 1、APPID、APISecret、APIKey、APIPassword信息获取：<a href="https://training.xfyun.cn/model/add">...</a>
  * 2、文档地址：<a href="https://www.xfyun.cn/doc/spark/%E7%B2%BE%E8%B0%83%E6%9C%8D%E5%8A%A1API-websocket.html">...</a>
  */
 public class MassClientApp {
+
     private static final Logger logger = LoggerFactory.getLogger(MassClientApp.class);
     private static final String appId = PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
     private static final String apiSecret = PropertiesConfig.getApiSecret();
-
+    private static final String apiPassword = "你的apiPassword";
 
     public static void main(String[] args) throws Exception {
-        MassClient client = new MassClient.Builder()
-                // .signatureWs("0", "xdeepseekv3", appId, apiKey, apiSecret)
-                .signatureWs("0", "xdeepseekr1", appId, apiKey, apiSecret)
-                // .signatureHttp("0", "xdeepseekr1", apiKey)
-                .wsUrl("wss://maas-api.cn-huabei-1.xf-yun.com/v1.1/chat")
-                // .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1/chat/completions")
-                .build();
 
         List<RoleContent> messages = new ArrayList<>();
         RoleContent roleContent = new RoleContent();
@@ -64,6 +63,97 @@ public class MassClientApp {
         messages.add(roleContent3);
         messages.add(roleContent4);
 
+        // ws请求方式
+        chatWs(messages);
+
+        // post方式
+        // chatPost(messages);
+
+        // 流式请求
+        // chatStream(messages);
+    }
+
+    private static void chatStream(List<RoleContent> messages) {
+        MassClient client = new MassClient.Builder()
+                .signatureHttp("0", "xdeepseekr1", apiPassword)
+                .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1/chat/completions")
+                .build();
+
+        // 统计耗时
+        SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
+        Date dateBegin = new Date();
+
+        // 最终回复结果
+        StringBuilder finalResult = new StringBuilder();
+        // 最终思维链结果
+        StringBuilder thingkingResult = new StringBuilder();
+
+        client.sendStream(messages, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                logger.error("sse连接失败：{}", e.getMessage());
+                System.exit(0);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) {
+                if (!response.isSuccessful()) {
+                    logger.error("请求失败，状态码：{}，原因：{}", response.code(), response.message());
+                    System.exit(0);
+                    return;
+                }
+                ResponseBody body = response.body();
+                if (body != null) {
+                    BufferedSource source = body.source();
+                    try {
+                        while (true) {
+                            String line = source.readUtf8Line();
+                            if (line == null) {
+                                break;
+                            }
+                            if (line.startsWith("data:")) {
+                                // 去掉前缀 "data: "
+                                String data = line.substring(5).trim();
+                                if (extractContent(data, finalResult, thingkingResult)) {
+                                    // 说明数据全部返回完毕，可以关闭连接，释放资源
+                                    logger.info("session end");
+                                    Date dateEnd = new Date();
+                                    logger.info("{}开始", sdf.format(dateBegin));
+                                    logger.info("{}结束", sdf.format(dateEnd));
+                                    logger.info("耗时：{}ms", dateEnd.getTime() - dateBegin.getTime());
+                                    logger.info("完整思维链结果 ==> {}", thingkingResult);
+                                    logger.info("最终识别结果 ==> {}", finalResult);
+                                    System.exit(0);
+                                }
+                            }
+                        }
+                    } catch (IOException e) {
+                        logger.error("读取sse返回内容发生异常", e);
+                    }
+                }
+            }
+        });
+    }
+
+    private static void chatPost(List<RoleContent> messages) throws IOException {
+        MassClient client = new MassClient.Builder()
+                .signatureHttp("0", "xdeepseekr1", apiPassword)
+                .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1/chat/completions")
+                .build();
+
+        String result = client.sendPost(messages);
+        logger.debug("{} 模型返回结果 ==>{}", client.getDomain(), result);
+        JSONObject obj = JSON.parseObject(result);
+        String content = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
+        logger.info("{} 大模型回复内容 ==>{}", client.getDomain(), content);
+    }
+
+    private static void chatWs(List<RoleContent> messages) throws MalformedURLException, UnsupportedEncodingException, SignatureException {
+        MassClient client = new MassClient.Builder()
+                .signatureWs("0", "xdeepseekr1", appId, apiKey, apiSecret)
+                .wsUrl("wss://maas-api.cn-huabei-1.xf-yun.com/v1.1/chat")
+                .build();
+
         // 统计耗时
         SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
         Date dateBegin = new Date();
@@ -81,6 +171,7 @@ public class MassClientApp {
                 if (resp.getHeader().getCode() != 0) {
                     logger.error("code=>{}，error=>{}，sid=>{}", resp.getHeader().getCode(), resp.getHeader().getMessage(), resp.getHeader().getSid());
                     logger.warn("错误码查询链接：https://www.xfyun.cn/doc/spark/%E7%B2%BE%E8%B0%83%E6%9C%8D%E5%8A%A1API-websocket.html");
+                    System.exit(0);
                     return;
                 }
 
@@ -117,67 +208,14 @@ public class MassClientApp {
             @Override
             public void onFail(WebSocket webSocket, Throwable t, Response response) {
                 client.closeWebsocket();
+                System.exit(0);
             }
 
             @Override
             public void onClose(WebSocket webSocket, int code, String reason) {
-
+                System.exit(0);
             }
         });
-
-        // post方式
-        // String result = client.sendPost(messages);
-        // logger.debug("{} 模型返回结果 ==>{}", client.getDomain(), result);
-        // JSONObject obj = JSON.parseObject(result);
-        // String content = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
-        // logger.info("{} 大模型回复内容 ==>{}", client.getDomain(), content);
-
-        // sse方式
-        // client.sendStream(messages, new Callback() {
-        //     @Override
-        //     public void onFailure(Call call, IOException e) {
-        //         logger.error("sse连接失败：{}", e.getMessage());
-        //         System.exit(0);
-        //     }
-        //
-        //     @Override
-        //     public void onResponse(Call call, Response response) {
-        //         if (!response.isSuccessful()) {
-        //             logger.error("请求失败，状态码：{}，原因：{}", response.code(), response.message());
-        //             System.exit(0);
-        //             return;
-        //         }
-        //         ResponseBody body = response.body();
-        //         if (body != null) {
-        //             BufferedSource source = body.source();
-        //             try {
-        //                 while (true) {
-        //                     String line = source.readUtf8Line();
-        //                     if (line == null) {
-        //                         break;
-        //                     }
-        //                     if (line.startsWith("data:")) {
-        //                         // 去掉前缀 "data: "
-        //                         String data = line.substring(5).trim();
-        //                         if (extractContent(data, finalResult, thingkingResult)) {
-        //                             // 说明数据全部返回完毕，可以关闭连接，释放资源
-        //                             logger.info("session end");
-        //                             Date dateEnd = new Date();
-        //                             logger.info("{}开始", sdf.format(dateBegin));
-        //                             logger.info("{}结束", sdf.format(dateEnd));
-        //                             logger.info("耗时：{}ms", dateEnd.getTime() - dateBegin.getTime());
-        //                             logger.info("完整思维链结果 ==> {}", thingkingResult);
-        //                             logger.info("最终识别结果 ==> {}", finalResult);
-        //                             System.exit(0);
-        //                         }
-        //                     }
-        //                 }
-        //             } catch (IOException e) {
-        //                 logger.error("读取sse返回内容发生异常", e);
-        //             }
-        //         }
-        //     }
-        // });
     }
 
     /**
