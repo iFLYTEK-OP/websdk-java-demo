@@ -22,18 +22,17 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
 /**
  * SPARK_MUL_LANG_IAT( iFly Spark Auto Transform ) 多语种大模型语音听写
  * 1、APPID、APISecret、APIKey信息获取：<a href="https://console.xfyun.cn/services/bmm">...</a>
  * 2、文档地址：<a href="https://www.xfyun.cn/doc/spark/spark_mul_cn_iat.html">...</a>
  */
 public class SparkIatMulLangClientApp {
+
     private static final Logger logger = LoggerFactory.getLogger(SparkIatMulLangClientApp.class);
     private static final String appId = PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
     private static final String apiSecret = PropertiesConfig.getApiSecret();
-
     private static final String filePath = "audio/spark_iat_mul_lang_16k_10.pcm";
     private static String resourcePath;
 
@@ -44,7 +43,6 @@ public class SparkIatMulLangClientApp {
             logger.error("获取资源路径失败", e);
         }
     }
-
 
     public static void main(String[] args) throws FileNotFoundException, SignatureException, MalformedURLException, InterruptedException {
         SparkIatClient sparkIatClient = new SparkIatClient.Builder()

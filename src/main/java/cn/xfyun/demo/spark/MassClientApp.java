@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.security.SignatureException;
 import java.text.SimpleDateFormat;
@@ -36,7 +35,7 @@ public class MassClientApp {
     private static final String appId = PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
     private static final String apiSecret = PropertiesConfig.getApiSecret();
-    private static final String apiPassword = "你的apiPassword";
+    private static final String apiPassword = "您的apiPassword";
 
     public static void main(String[] args) throws Exception {
 
@@ -88,7 +87,7 @@ public class MassClientApp {
         // 最终思维链结果
         StringBuilder thingkingResult = new StringBuilder();
 
-        client.sendStream(messages, new Callback() {
+        client.send(messages, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 logger.error("sse连接失败：{}", e.getMessage());
@@ -141,14 +140,14 @@ public class MassClientApp {
                 .requestUrl("https://maas-api.cn-huabei-1.xf-yun.com/v1/chat/completions")
                 .build();
 
-        String result = client.sendPost(messages);
+        String result = client.send(messages);
         logger.debug("{} 模型返回结果 ==>{}", client.getDomain(), result);
         JSONObject obj = JSON.parseObject(result);
         String content = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
         logger.info("{} 大模型回复内容 ==>{}", client.getDomain(), content);
     }
 
-    private static void chatWs(List<RoleContent> messages) throws MalformedURLException, UnsupportedEncodingException, SignatureException {
+    private static void chatWs(List<RoleContent> messages) throws MalformedURLException, SignatureException {
         MassClient client = new MassClient.Builder()
                 .signatureWs("0", "xdeepseekr1", appId, apiKey, apiSecret)
                 .wsUrl("wss://maas-api.cn-huabei-1.xf-yun.com/v1.1/chat")
@@ -164,7 +163,7 @@ public class MassClientApp {
         StringBuilder thingkingResult = new StringBuilder();
 
         // ws方式
-        client.sendWs(messages, new AbstractMassWebSocketListener() {
+        client.send(messages, new AbstractMassWebSocketListener() {
             @Override
             public void onSuccess(WebSocket webSocket, MassResponse resp) {
                 logger.debug("中间返回json结果 ==>{}", JSONUtil.toJsonStr(resp));
@@ -199,7 +198,7 @@ public class MassClientApp {
                         logger.info("完整思维链结果 ==> {}", thingkingResult);
                         logger.info("最终识别结果 ==> {}", finalResult);
                         logger.info("本次识别sid ==> {}", resp.getHeader().getSid());
-                        client.closeWebsocket();
+                        webSocket.close(1000, "正常关闭");
                         System.exit(0);
                     }
                 }
@@ -207,7 +206,7 @@ public class MassClientApp {
 
             @Override
             public void onFail(WebSocket webSocket, Throwable t, Response response) {
-                client.closeWebsocket();
+                webSocket.close(1000, t.getMessage());
                 System.exit(0);
             }
 

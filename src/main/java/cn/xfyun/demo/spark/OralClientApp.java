@@ -11,11 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.security.SignatureException;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
@@ -43,7 +39,7 @@ public class OralClientApp {
         }
     }
 
-    public static void main(String[] args) throws MalformedURLException, SignatureException, UnsupportedEncodingException, FileNotFoundException {
+    public static void main(String[] args) {
         OralClient oralClient = new OralClient.Builder()
                 .signature(appId, apiKey, apiSecret)
                 .vcn("x4_lingfeizhe_oral")

@@ -20,18 +20,17 @@ import java.security.SignatureException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-
 /**
  * SPARK_IAT( iFly Spark Auto Transform ) 中文大模型语音听写
  * 1、APPID、APISecret、APIKey信息获取：<a href="https://console.xfyun.cn/services/bmc">...</a>
  * 2、文档地址：<a href="https://www.xfyun.cn/doc/spark/spark_zh_iat.html">...</a>
  */
 public class SparkIatZhClientApp {
+
     private static final Logger logger = LoggerFactory.getLogger(SparkIatZhClientApp.class);
     private static final String appId = PropertiesConfig.getAppId();
     private static final String apiKey = PropertiesConfig.getApiKey();
     private static final String apiSecret = PropertiesConfig.getApiSecret();
-
     private static final String filePath = "audio/spark_iat_cn_16k_10.pcm";
     private static String resourcePath;
 
@@ -42,7 +41,6 @@ public class SparkIatZhClientApp {
             logger.error("获取资源路径失败", e);
         }
     }
-
 
     public static void main(String[] args) throws FileNotFoundException, SignatureException, MalformedURLException, InterruptedException {
         SparkIatClient sparkIatClient = new SparkIatClient.Builder()
