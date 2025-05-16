@@ -17,6 +17,11 @@ public class PropertiesConfig {
     private static final String apiSecret;
     private static final String rtaAPIKey;
     private static final String lfasrSecretKey;
+    private static final String sparkBatchKey;
+    private static final String maasApiKey;
+    private static final String maasResourceId;
+    private static final String maasModelId;
+    private static final String sparkApiPassword;
 
     static {
         Properties properties = new Properties();
@@ -32,8 +37,18 @@ public class PropertiesConfig {
 
 
         rtaAPIKey = properties.getProperty("rtaAPIKey");
-        
+
         lfasrSecretKey = properties.getProperty("lfasrSecretKey");
+
+        sparkBatchKey = properties.getProperty("sparkBatchKey");
+
+        maasApiKey = properties.getProperty("maasApiKey");
+
+        maasResourceId = properties.getProperty("maasResourceId");
+
+        maasModelId = properties.getProperty("maasModelId");
+
+        sparkApiPassword = properties.getProperty("sparkApiPassword");
     }
 
     public static String getAppId() {
@@ -54,5 +69,25 @@ public class PropertiesConfig {
 
     public static String getLfasrSecretKey() {
         return lfasrSecretKey;
+    }
+
+    public static String getSparkBatchKey() {
+        return sparkBatchKey;
+    }
+
+    public static String getMaasApiKey() {
+        return maasApiKey;
+    }
+
+    public static String getMaasResourceId() {
+        return maasResourceId;
+    }
+
+    public static String getMaasModelId() {
+        return maasModelId;
+    }
+
+    public static String getSparkApiPassword() {
+        return sparkApiPassword;
     }
 }
