@@ -73,6 +73,9 @@ public class RtasrClientApp {
     static {
         RTASR_CLIENT = new RtasrClient.Builder()
                 .signature(APP_ID, API_KEY)
+                // .lang("cn")
+                // 设置此参数需需开通翻译功能，请在控制台申请并开通
+                // .targetLang("en")
                 .build();
 
         try {
