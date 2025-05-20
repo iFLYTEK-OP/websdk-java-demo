@@ -37,7 +37,6 @@
             <groupId>cn.xfyun</groupId>
             <artifactId>websdk-java-spark</artifactId>
             <version>2.1.2</version>
-            <classifier>source</classifier>
         </dependency>
 
         <dependency>
