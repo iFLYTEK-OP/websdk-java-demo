@@ -1,12 +1,14 @@
 package cn.xfyun.util;
 
+import javazoom.jl.player.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -82,6 +84,57 @@ public class AudioPlayer {
 
         playerThread.setName("Audio-Player-Thread");
         playerThread.start();
+    }
+
+    public void playFile(File audioFile) throws Exception {
+        String fileName = audioFile.getName().toLowerCase();
+
+        if (fileName.endsWith(".mp3")) {
+            playMp3(audioFile);
+        } else if (fileName.endsWith(".wav") || fileName.endsWith(".pcm")) {
+            playWavOrPcm(audioFile, fileName.endsWith(".pcm"));
+        } else {
+            throw new UnsupportedAudioFileException("不支持播放的音频格式: " + fileName);
+        }
+    }
+
+    // 播放 MP3 文件
+    private void playMp3(File file) throws Exception {
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+            Player player = new Player(bis);
+            player.play();
+        }
+    }
+
+    // 播放 WAV 或 PCM 文件
+    private void playWavOrPcm(File file, boolean isPcm) throws Exception {
+        AudioInputStream audioInputStream;
+
+        if (isPcm) {
+            // 假设 PCM 是无头的裸数据 (例如 16位, 44100Hz, 单声道)
+            AudioFormat format = new AudioFormat(16000, 16, 1, true, false);
+            InputStream pcmStream = new BufferedInputStream(new FileInputStream(file));
+            audioInputStream = new AudioInputStream(pcmStream, format, file.length() / format.getFrameSize());
+        } else {
+            audioInputStream = AudioSystem.getAudioInputStream(file);
+        }
+
+        AudioFormat format = audioInputStream.getFormat();
+        DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+
+        try (SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info)) {
+            line.open(format);
+            line.start();
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = audioInputStream.read(buffer)) != -1) {
+                line.write(buffer, 0, bytesRead);
+            }
+
+            line.drain();
+            line.stop();
+        }
     }
 
     /**

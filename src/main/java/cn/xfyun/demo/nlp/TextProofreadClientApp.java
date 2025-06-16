@@ -38,7 +38,7 @@ public class TextProofreadClientApp {
         // 结果获取text后解码
         byte[] decodedBytes = Base64.getDecoder().decode(obj.getJSONObject("payload").getJSONObject("output_result").getString("text"));
         String decodeRes = new String(decodedBytes, StandardCharsets.UTF_8);
-        logger.info("求地址：{}", client.getHostUrl());
+        logger.info("请求地址：{}", client.getHostUrl());
         logger.info("请求返回结果：{}", resp);
         logger.info("文本解码后的结果：{}", decodeRes);
     }

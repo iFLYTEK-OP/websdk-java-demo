@@ -348,6 +348,7 @@ public class SimInterpClientApp {
                 @Override
                 public void onFail(WebSocket webSocket, Throwable t, Response response) {
                     logger.error(t.getMessage());
+                    // 兼容用户错误音频数据 , 只有手动关闭才结束
                     // sender.stop();
                     // audioPlayer.stop();
                     // System.exit(0);

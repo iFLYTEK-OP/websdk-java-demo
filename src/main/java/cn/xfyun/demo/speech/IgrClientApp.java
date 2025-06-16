@@ -58,12 +58,15 @@ public class IgrClientApp {
      * 处理麦克风输入的音频数据
      */
     public static void processAudioFromMicrophone(IgrClient igrClient) {
+        // 麦克风工具类
+        MicrophoneAudioSender sender = new MicrophoneAudioSender((audioData, length) -> {
+            // 发送给 WebSocket
+            igrClient.sendMessage(audioData, 1);
+        });
+
         try (Scanner scanner = new Scanner(System.in)) {
             logger.info("按回车开始识别...");
             scanner.nextLine();
-
-            // 麦克风工具类
-            MicrophoneAudioSender sender = null;
 
             igrClient.start(new AbstractIgrWebSocketListener() {
                 @Override
@@ -85,10 +88,7 @@ public class IgrClientApp {
                 }
             });
             igrClient.sendMessage(null, 0);
-            sender = new MicrophoneAudioSender((audioData, length) -> {
-                // 发送给 WebSocket
-                igrClient.sendMessage(audioData, 1);
-            });
+
             sender.start();
 
             logger.info("正在聆听，按回车结束听写...");
@@ -100,6 +100,8 @@ public class IgrClientApp {
         } catch (IOException e) {
             logger.error("流操作异常", e);
             throw new RuntimeException("音频数据传输失败", e);
+        } finally {
+            sender.stop();
         }
     }
 

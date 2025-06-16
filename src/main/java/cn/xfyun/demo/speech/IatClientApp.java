@@ -166,14 +166,18 @@ public class IatClientApp {
         dateBegin = new Date();
         resultSegments = new ArrayList<>();
 
+        // 麦克风工具类
+        MicrophoneAudioSender sender = new MicrophoneAudioSender((audioData, length) -> {
+            // 发送给 WebSocket
+            IAT_CLIENT.sendMessage(audioData, 1);
+        });
+
         try (Scanner scanner = new Scanner(System.in)) {
             logger.info("按回车开始实时听写...");
             scanner.nextLine();
 
             IAT_CLIENT.start(new AbstractIatWebSocketListener() {
 
-                // 麦克风工具类
-                MicrophoneAudioSender sender = null;
 
                 @Override
                 public void onSuccess(WebSocket webSocket, IatResponse iatResponse) {
@@ -217,13 +221,10 @@ public class IatClientApp {
                 public void onOpen(WebSocket webSocket, Response response) {
                     logger.info("连接成功");
                     IAT_CLIENT.sendMessage(null, 0);
-                    sender = new MicrophoneAudioSender((audioData, length) -> {
-                        // 发送给 WebSocket
-                        IAT_CLIENT.sendMessage(audioData, 1);
-                    });
-                    sender.start();
                 }
             });
+
+            sender.start();
 
             logger.info("正在聆听，按回车结束听写...");
             scanner.nextLine();
@@ -233,6 +234,8 @@ public class IatClientApp {
         } catch (IOException e) {
             logger.error("流操作异常", e);
             throw new RuntimeException("音频数据传输失败", e);
+        } finally {
+            sender.stop();
         }
     }
 

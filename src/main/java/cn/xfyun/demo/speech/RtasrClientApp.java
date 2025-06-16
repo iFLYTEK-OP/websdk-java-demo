@@ -151,12 +151,16 @@ public class RtasrClientApp {
      */
     public static void processAudioFromCustom() {
         finalResult = new StringBuffer();
+
+        // 麦克风工具类
+        MicrophoneAudioSender sender = new MicrophoneAudioSender((audioData, length) -> {
+            // 发送给 WebSocket
+            RTASR_CLIENT.sendMessage(audioData);
+        });
+
         try (Scanner scanner = new Scanner(System.in)) {
             logger.info("按回车开始实时转写...");
             scanner.nextLine();
-
-            // 麦克风工具类
-            MicrophoneAudioSender sender = null;
 
             RTASR_CLIENT.start(new AbstractRtasrWebSocketListener() {
 
@@ -195,10 +199,6 @@ public class RtasrClientApp {
                 }
             });
 
-            sender = new MicrophoneAudioSender((audioData, length) -> {
-                // 发送给 WebSocket
-                RTASR_CLIENT.sendMessage(audioData);
-            });
             sender.start();
 
             logger.info("正在聆听，按回车结束转写...");
@@ -207,6 +207,8 @@ public class RtasrClientApp {
         } catch (SignatureException e) {
             logger.error("API签名验证失败", e);
             throw new RuntimeException("服务鉴权失败", e);
+        } finally {
+            sender.stop();
         }
     }
 

@@ -5,17 +5,15 @@ import cn.xfyun.config.PropertiesConfig;
 import cn.xfyun.config.SparkIatModelEnum;
 import cn.xfyun.model.sparkiat.response.SparkIatResponse;
 import cn.xfyun.service.sparkiat.AbstractSparkIatWebSocketListener;
+import cn.xfyun.util.AudioPlayer;
 import cn.xfyun.util.StringUtils;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sound.sampled.*;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -62,7 +60,7 @@ public class SparkIatMulZhClientApp {
         sparkIatClient.send(file, getWebSocketListener());
 
         // 实时播放音频
-        // play(file);
+        play(file);
     }
 
     /**
@@ -176,25 +174,13 @@ public class SparkIatMulZhClientApp {
      * 播放工具
      */
     private static void play(File file) {
-        AudioFormat format = new AudioFormat(16000, 16, 1, true, false); // true for signed, false for little-endian
-
-        try (FileInputStream fis = new FileInputStream(file);
-             AudioInputStream audioStream = new AudioInputStream(fis, format, file.length() / format.getFrameSize())) {
-
-            DataLine.Info info = new DataLine.Info(Clip.class, format);
-
-            try (Clip clip = (Clip) AudioSystem.getLine(info)) {
-                clip.open(audioStream);
-                clip.start();
-
-                // Wait for the sound to finish playing
-                while (!clip.isRunning())
-                    Thread.sleep(10);
-                while (clip.isRunning())
-                    Thread.sleep(10);
-            }
-        } catch (IOException | LineUnavailableException | InterruptedException e) {
-            System.err.println("Error playing audio file: " + e.getMessage());
+        AudioPlayer audioPlayer = new AudioPlayer();
+        try {
+            audioPlayer.playFile(file);
+        } catch (Exception e) {
+            logger.error("播放音频异常: {}", e.getMessage(), e);
+        } finally {
+            audioPlayer.stop();
         }
     }
 

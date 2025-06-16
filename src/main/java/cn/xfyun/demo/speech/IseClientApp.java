@@ -115,12 +115,16 @@ public class IseClientApp {
      * 处理麦克风输入的音频数据
      */
     public static void processAudioFromCustom() {
+
+        // 麦克风工具类
+        MicrophoneAudioSender sender = new MicrophoneAudioSender((audioData, length) -> {
+            // 发送给 WebSocket
+            ISE_CLIENT.sendMessage(audioData, 1);
+        });
+
         try (Scanner scanner = new Scanner(System.in)) {
             logger.info("本次评测内容为【{}】，按回车开始实时评测...", ISE_CLIENT.getText().replace("\uFEFF", ""));
             scanner.nextLine();
-
-            // 麦克风工具类
-            MicrophoneAudioSender sender = null;
 
             // 调用评测服务
             ISE_CLIENT.start(new AbstractIseWebSocketListener() {
@@ -145,10 +149,7 @@ public class IseClientApp {
                 }
             });
             ISE_CLIENT.sendMessage(null, 0);
-            sender = new MicrophoneAudioSender((audioData, length) -> {
-                // 发送给 WebSocket
-                ISE_CLIENT.sendMessage(audioData, 1);
-            });
+
             sender.start();
 
             logger.info("正在聆听，按回车结束评测...");
@@ -160,6 +161,8 @@ public class IseClientApp {
         } catch (IOException e) {
             logger.error("流操作异常", e);
             throw new RuntimeException("音频数据传输失败", e);
+        } finally {
+            sender.stop();
         }
     }
 
