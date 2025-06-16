@@ -11,8 +11,8 @@ import okhttp3.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import javax.sound.sampled.*;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -45,19 +45,38 @@ public class SparkIatZhClientApp {
     public static void main(String[] args) throws FileNotFoundException, SignatureException, MalformedURLException, InterruptedException {
         SparkIatClient sparkIatClient = new SparkIatClient.Builder()
                 .signature(appId, apiKey, apiSecret, SparkIatModelEnum.ZH_CN_MANDARIN.getCode())
-                // 流式实时返回撰写结果
+                // 流式实时返回转写结果
                 .dwa("wpgs")
                 .build();
 
+        // 处理从文件中获取的音频数据
+        processAudioFromFile(sparkIatClient);
+    }
+
+    private static void processAudioFromFile(SparkIatClient sparkIatClient) throws FileNotFoundException, MalformedURLException, SignatureException {
+        File file = new File(resourcePath + filePath);
+
+        // 调用sdk方法
+        sparkIatClient.send(file, getWebSocketListener());
+
+        // 实时播放音频
+        // play(file);
+    }
+
+    /**
+     * 自定义ws监听类
+     */
+    private static AbstractSparkIatWebSocketListener getWebSocketListener() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
         Date dateBegin = new Date();
 
-        File file = new File(resourcePath + filePath);
+        // 最终结果
         StringBuffer finalResult = new StringBuffer();
 
         // 存储流式返回结果的Map sn -> content
         Map<Integer, String> contentMap = new TreeMap<>();
-        sparkIatClient.send(file, new AbstractSparkIatWebSocketListener() {
+
+        return new AbstractSparkIatWebSocketListener() {
             @Override
             public void onSuccess(WebSocket webSocket, SparkIatResponse resp) {
                 // logger.debug("{}", JSON.toJSONString(resp));
@@ -102,7 +121,8 @@ public class SparkIatZhClientApp {
                         if (jsonParseText.getPgs().equals("apd")) {
                             // 直接添加
                             contentMap.put(jsonParseText.getSn(), reqResult.toString());
-                            logger.info("中间识别结果 【{}】 拼接后结果==> {}", reqResult, getLastResult(contentMap));
+                            // logger.info("中间识别结果 【{}】 拼接后结果==> {}", reqResult, getLastResult(contentMap));
+                            logger.info("{}", getLastResult(contentMap));
                         } else if (jsonParseText.getPgs().equals("rpl")) {
                             List<Integer> rg = jsonParseText.getRg();
                             int startIndex = rg.get(0);
@@ -112,7 +132,8 @@ public class SparkIatZhClientApp {
                                 contentMap.remove(i);
                             }
                             contentMap.put(jsonParseText.getSn(), reqResult.toString());
-                            logger.info("中间识别结果 【{}】 替换后结果==> {}", reqResult, getLastResult(contentMap));
+                            // logger.info("中间识别结果 【{}】 替换后结果==> {}", reqResult, getLastResult(contentMap));
+                            logger.info("{}", getLastResult(contentMap));
                         }
                     }
 
@@ -130,7 +151,7 @@ public class SparkIatZhClientApp {
                             logger.info("最终识别结果 ==>{}", finalResult);
                         }
                         logger.info("本次识别sid ==>{}", resp.getHeader().getSid());
-                        sparkIatClient.closeWebsocket();
+                        webSocket.close(1000, "");
                         System.exit(0);
                     }
                 }
@@ -147,9 +168,38 @@ public class SparkIatZhClientApp {
                 logger.info("关闭连接,code是{},reason:{}", code, reason);
                 System.exit(0);
             }
-        });
+        };
     }
 
+    /**
+     * 音频播放方法
+     */
+    private static void play(File file) {
+        AudioFormat format = new AudioFormat(16000, 16, 1, true, false); // true for signed, false for little-endian
+
+        try (FileInputStream fis = new FileInputStream(file);
+             AudioInputStream audioStream = new AudioInputStream(fis, format, file.length() / format.getFrameSize())) {
+
+            DataLine.Info info = new DataLine.Info(Clip.class, format);
+
+            try (Clip clip = (Clip) AudioSystem.getLine(info)) {
+                clip.open(audioStream);
+                clip.start();
+
+                // Wait for the sound to finish playing
+                while (!clip.isRunning())
+                    Thread.sleep(10);
+                while (clip.isRunning())
+                    Thread.sleep(10);
+            }
+        } catch (IOException | LineUnavailableException | InterruptedException e) {
+            System.err.println("Error playing audio file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取最终结果
+     */
     private static String getLastResult(Map<Integer, String> contentMap) {
         StringBuilder result = new StringBuilder();
         for (String part : contentMap.values()) {
@@ -158,6 +208,9 @@ public class SparkIatZhClientApp {
         return result.toString();
     }
 
+    /**
+     * 拼接中间结果
+     */
     private static StringBuilder getWsContent(SparkIatResponse.JsonParseText jsonParseText) {
         StringBuilder reqResult = new StringBuilder();
         List<SparkIatResponse.Ws> wsList = jsonParseText.getWs();

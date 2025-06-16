@@ -12,38 +12,70 @@
 
 请点击[音频文件语音转写控制台](https://console.xfyun.cn/services/lfasr)进行获取并填写到src/main/resources/test.properties文件！
 
+## 4、星火大模型批处理sparkBatchKey获取
+
+请点击[星火大模型批处理](https://console.xfyun.cn/services/bm3.5batch)进行获取并填写到src/main/resources/test.properties文件！
+
+## 5、星辰Maas平台key获取
+
+sparkApiPassword、maasApiKey、maasResourceId、maasModelId
+
+请点击[星辰Maas平台](https://maas.xfyun.cn/)模型卡片进行获取并填写到src/main/resources/test.properties文件！
+
 ## 4、DEMO运行说明
 
 获取到信息后填写到项目路径src/main/resources/test.properties文件中，找到能力对应的主类运行即可。能力与主类对应说明如下：
 
-| AI能力名称                                | 对应主类名称                         | 
-|---------------------------------------|--------------------------------|
-| 语音听写                                  | IatClientApp                   |
-| 实时语音转写                                | RtasrClientApp                 |
-| 音频文件语音转写                              | LfasrClientApp                 |
-| 语音合成                                  | TtsClientApp                   |
-| 语音评测                                  | IseClientApp                   |
-| 小牛翻译及自研机器翻译                           | TranslateApp                   |
-| 文本纠错                                  | TextCheckClientApp             |
-| PPT生成                                 | AIPPTClientApp                 |
-| 静默活体检测                                | AntiSpoofClientApp             |
-| 银行卡识别                                 | BankcardClientApp              |
-| 名片识别                                  | BusinessCardClientApp          |
-| 人脸比对                                  | FaceCompareClientApp           |
-| 人脸检测和属性分析                             | FaceDetectClientApp            |
-| 配合式活体检测                               | FaceStatusClientApp            |
-| 人脸比对sensetime                         | FaceVerificationClientApp      |
-| 指尖文字识别                                | FingerOcrClientApp             |
-| 印刷文字识别和手写文字识别                         | GeneralWordsClientApp          |
-| 性别年龄识别                                | IgrClientApp                   |
-| 场景识别和物体识别                             | ImageRecClientApp              |
+| AI能力名称                                                   | 对应主类名称                   |
+| ------------------------------------------------------------ | ------------------------------ |
+| 语音听写                                                     | IatClientApp                   |
+| 实时语音转写                                                 | RtasrClientApp                 |
+| 音频文件语音转写                                             | LfasrClientApp                 |
+| 语音合成                                                     | TtsClientApp                   |
+| 语音评测                                                     | IseClientApp                   |
+| 小牛翻译及自研机器翻译                                       | TranslateApp                   |
+| 文本纠错                                                     | TextCheckClientApp             |
+| 智能PPT（新）                                                | AIPPV2TClientApp               |
+| 静默活体检测                                                 | AntiSpoofClientApp             |
+| 银行卡识别                                                   | BankcardClientApp              |
+| 名片识别                                                     | BusinessCardClientApp          |
+| 人脸比对                                                     | FaceCompareClientApp           |
+| 人脸检测和属性分析                                           | FaceDetectClientApp            |
+| 配合式活体检测                                               | FaceStatusClientApp            |
+| 人脸比对sensetime                                            | FaceVerificationClientApp      |
+| 指尖文字识别                                                 | FingerOcrClientApp             |
+| 印刷文字识别和手写文字识别                                   | GeneralWordsClientApp          |
+| 性别年龄识别                                                 | IgrClientApp                   |
+| 场景识别和物体识别                                           | ImageRecClientApp              |
 | 图片类识别（营业执照,出租车发票,火车票,增值税发票 ,身份证,印刷文字） | ImageWordClientApp             |
-| 身份证识别 营业执照识别 增值税发票识别 印刷文字识别（多语种）      | IntsigOcrClientApp             |
-| 场所识别                                  | PlaceRecClientApp              |
-| 歌曲识别                                  | QbhClientApp                   |
-| 静默活体检测sensetime                       | SilentDetectionClientApp       |
-| 人脸检测和属性分析                             | TupApiClientApp                |
-| 人脸水印照比对                               | WatermarkVerificationClientApp |
+| 身份证识别 营业执照识别 增值税发票识别 印刷文字识别（多语种） | IntsigOcrClientApp             |
+| 场所识别                                                     | PlaceRecClientApp              |
+| 歌曲识别                                                     | QbhClientApp                   |
+| 静默活体检测sensetime                                        | SilentDetectionClientApp       |
+| 人脸检测和属性分析                                           | TupApiClientApp                |
+| 人脸水印照比对                                               | WatermarkVerificationClientApp |
+| 图片生成hidream                                              | HiDreamClientApp               |
+| 图片生成                                                     | ImageGenClientApp              |
+| 图像理解                                                     | ImageUnderstandClientApp       |
+| 星辰Mass平台                                                 | MaasClientApp                  |
+| 超拟人合成                                                   | OralClientApp                  |
+| 简历生成                                                     | ResumeGenClientApp             |
+| 星火大模型批处理                                             | SparkBatchClientApp            |
+| 星火大模型                                                   | SparkChatClientApp             |
+| 星火自定义大模型                                             | SparkCustomClientApp           |
+| 多语种大模型语音听写                                         | SparkIatMulLangClientApp       |
+| 方言大模型语音听写                                           | SparkIatMulZhClientApp         |
+| 中文大模型语音听写                                           | SparkIatZhClientApp            |
+| 一句话复刻                                                   | VoiceCloneClientApp            |
+| 一句话训练                                                   | VoiceTrainClientApp            |
+| 音频合规                                                     | AudioComplianceClientApp       |
+| 图片合规                                                     | ImageComplianceClientApp       |
+| 同声传译                                                     | SimInterpClientApp             |
+| 文本合规                                                     | TextComplianceClientApp        |
+| 文本校对                                                     | TextProofreadClientApp         |
+| 文本改写                                                     | TextRewriteClientApp           |
+| 视频合规                                                     | VideoComplianceClientApp       |
+| 词库操作                                                     | WordLibClientApp               |
 
 # 二、讯飞开放平台常用AI能力介绍与常用参数说明
 

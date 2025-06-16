@@ -6,6 +6,7 @@ import cn.xfyun.model.response.iat.IatResponse;
 import cn.xfyun.model.response.iat.IatResult;
 import cn.xfyun.model.response.iat.Text;
 import cn.xfyun.service.iat.AbstractIatWebSocketListener;
+import cn.xfyun.util.MicrophoneAudioSender;
 import cn.xfyun.util.MicrophoneRecorderUtil;
 import okhttp3.Response;
 import okhttp3.WebSocket;
@@ -67,6 +68,7 @@ public class IatClientApp {
                 .signature(APP_ID, API_KEY, API_SECRET)
                 // 动态修正功能：值为wpgs时代表开启（包含修正功能的）流式听写
                 .dwa("wpgs")
+                .vad_eos(6000)
                 .build();
 
         try {
@@ -128,6 +130,9 @@ public class IatClientApp {
 
         // 方式二：处理麦克风输入的音频数据
         // processAudioFromMicrophone();
+
+        // 方式三：用户自定义消息
+        // processAudioFromCustom();
     }
 
     /**
@@ -150,6 +155,84 @@ public class IatClientApp {
         } catch (SignatureException e) {
             logger.error("API签名异常", e);
             throw new RuntimeException("服务鉴权失败，请检查API密钥配置");
+        }
+    }
+
+    /**
+     * 处理麦克风输入的音频数据
+     */
+    public static void processAudioFromCustom() {
+        // 记录操作耗时与最终结果
+        dateBegin = new Date();
+        resultSegments = new ArrayList<>();
+
+        try (Scanner scanner = new Scanner(System.in)) {
+            logger.info("按回车开始实时听写...");
+            scanner.nextLine();
+
+            IAT_CLIENT.start(new AbstractIatWebSocketListener() {
+
+                // 麦克风工具类
+                MicrophoneAudioSender sender = null;
+
+                @Override
+                public void onSuccess(WebSocket webSocket, IatResponse iatResponse) {
+                    if (iatResponse.getCode() != 0) {
+                        logger.warn("code：{}, error：{}, sid：{}", iatResponse.getCode(), iatResponse.getMessage(), iatResponse.getSid());
+                        logger.warn("错误码查询链接：https://www.xfyun.cn/document/error-code");
+                        System.exit(0);
+                        return;
+                    }
+
+                    if (iatResponse.getData() != null) {
+                        if (iatResponse.getData().getResult() != null) {
+                            // 解析服务端返回结果
+                            IatResult result = iatResponse.getData().getResult();
+                            Text textObject = result.getText();
+                            handleResultText(textObject);
+                            logger.info("中间识别结果：{}", getFinalResult());
+                        }
+
+                        if (iatResponse.getData().getStatus() == 2) {
+                            // resp.data.status ==2 说明数据全部返回完毕，可以关闭连接，释放资源
+                            logger.info("session end ");
+                            Date dateEnd = new Date();
+                            logger.info("识别开始时间：{}，识别结束时间：{}，总耗时：{}ms", SDF.format(dateBegin), SDF.format(dateEnd), dateEnd.getTime() - dateBegin.getTime());
+                            logger.info("最终识别结果：【{}】，本次识别sid：{}", getFinalResult(), iatResponse.getSid());
+                            IAT_CLIENT.closeWebsocket();
+                            System.exit(0);
+                        } else {
+                            // 根据返回的数据自定义处理逻辑
+                        }
+                    }
+                }
+
+                @Override
+                public void onFail(WebSocket webSocket, Throwable t, Response response) {
+                    // 自定义处理逻辑
+                    System.exit(0);
+                }
+
+                @Override
+                public void onOpen(WebSocket webSocket, Response response) {
+                    logger.info("连接成功");
+                    IAT_CLIENT.sendMessage(null, 0);
+                    sender = new MicrophoneAudioSender((audioData, length) -> {
+                        // 发送给 WebSocket
+                        IAT_CLIENT.sendMessage(audioData, 1);
+                    });
+                    sender.start();
+                }
+            });
+
+            logger.info("正在聆听，按回车结束听写...");
+            scanner.nextLine();
+        } catch (SignatureException e) {
+            logger.error("API签名验证失败", e);
+            throw new RuntimeException("服务鉴权异常，请检查密钥配置", e);
+        } catch (IOException e) {
+            logger.error("流操作异常", e);
+            throw new RuntimeException("音频数据传输失败", e);
         }
     }
 

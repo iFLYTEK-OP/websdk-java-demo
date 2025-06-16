@@ -4,6 +4,7 @@ import cn.xfyun.api.IseClient;
 import cn.xfyun.config.PropertiesConfig;
 import cn.xfyun.model.response.ise.IseResponseData;
 import cn.xfyun.service.ise.AbstractIseWebSocketListener;
+import cn.xfyun.util.MicrophoneAudioSender;
 import cn.xfyun.util.MicrophoneRecorderUtil;
 import okhttp3.Response;
 import okhttp3.WebSocket;
@@ -16,9 +17,7 @@ import java.io.PipedOutputStream;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.security.SignatureException;
-import java.util.Base64;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 import javax.sound.sampled.LineUnavailableException;
 
@@ -107,6 +106,61 @@ public class IseClientApp {
 
         // 方式二：处理麦克风输入的音频数据
         // processAudioFromMicrophone();
+
+        // 方式三：用户自定义消息
+        // processAudioFromCustom();
+    }
+
+    /**
+     * 处理麦克风输入的音频数据
+     */
+    public static void processAudioFromCustom() {
+        try (Scanner scanner = new Scanner(System.in)) {
+            logger.info("本次评测内容为【{}】，按回车开始实时评测...", ISE_CLIENT.getText().replace("\uFEFF", ""));
+            scanner.nextLine();
+
+            // 麦克风工具类
+            MicrophoneAudioSender sender = null;
+
+            // 调用评测服务
+            ISE_CLIENT.start(new AbstractIseWebSocketListener() {
+                @Override
+                public void onSuccess(WebSocket webSocket, IseResponseData iseResponseData) {
+                    //解码Base64响应数据并转换为UTF-8字符串、中止JVM
+                    logger.info("sid：{}，最终评测结果：{}{}", iseResponseData.getSid(), System.lineSeparator(), new String(DECODER.decode(iseResponseData.getData().getData()), StandardCharsets.UTF_8));
+                    System.exit(0);
+                }
+
+                @Override
+                public void onFail(WebSocket webSocket, Throwable throwable, Response response) {
+                    // 简单输出失败响应结果，实际生产环境建议添加重试逻辑
+                    logger.error("通信异常，服务端响应结果：{}", response, throwable);
+                    System.exit(0);
+                }
+
+                @Override
+                public void onOpen(WebSocket webSocket, Response response) {
+                    logger.info("连接成功");
+
+                }
+            });
+            ISE_CLIENT.sendMessage(null, 0);
+            sender = new MicrophoneAudioSender((audioData, length) -> {
+                // 发送给 WebSocket
+                ISE_CLIENT.sendMessage(audioData, 1);
+            });
+            sender.start();
+
+            logger.info("正在聆听，按回车结束评测...");
+            scanner.nextLine();
+            ISE_CLIENT.sendMessage(null, 2);
+        } catch (SignatureException e) {
+            logger.error("API签名验证失败", e);
+            throw new RuntimeException("服务鉴权异常，请检查密钥配置", e);
+        } catch (IOException e) {
+            logger.error("流操作异常", e);
+            throw new RuntimeException("音频数据传输失败", e);
+        }
     }
 
     /**
