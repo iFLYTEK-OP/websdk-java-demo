@@ -5,6 +5,7 @@ import cn.xfyun.config.PropertiesConfig;
 import cn.xfyun.config.SparkIatModelEnum;
 import cn.xfyun.model.sparkiat.response.SparkIatResponse;
 import cn.xfyun.service.sparkiat.AbstractSparkIatWebSocketListener;
+import cn.xfyun.util.AudioPlayer;
 import cn.xfyun.util.StringUtils;
 import okhttp3.Response;
 import okhttp3.WebSocket;
@@ -47,20 +48,58 @@ public class SparkIatMulLangClientApp {
     public static void main(String[] args) throws FileNotFoundException, SignatureException, MalformedURLException, InterruptedException {
         SparkIatClient sparkIatClient = new SparkIatClient.Builder()
                 .signature(appId, apiKey, apiSecret, SparkIatModelEnum.MUL_CN_MANDARIN.getCode())
-                // 流式实时返回撰写结果
+                // 流式实时返回转写结果 (仅中文支持)
                 .dwa("wpgs")
                 .build();
 
+        // 处理从文件中获取的音频数据
+        processAudioFromFile(sparkIatClient);
+    }
+
+    private static void processAudioFromFile(SparkIatClient sparkIatClient) throws FileNotFoundException, MalformedURLException, SignatureException {
+        AtomicBoolean isEnd = new AtomicBoolean(false);
+        File file = new File(resourcePath + filePath);
+
+        // 调用sdk方法
+        sparkIatClient.send(file, getWebSocketListener(isEnd));
+
+        // 多语种没有流式返回会开启线程动态打印日志
+        logPrinter(isEnd);
+
+        // 实时播放音频
+        play(file);
+    }
+
+    /**
+     * 日志打印
+     */
+    private static void logPrinter(AtomicBoolean isEnd) {
+        Thread loading = new Thread(() -> {
+            while (!isEnd.get()) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(2500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                logger.info("音频识别中...");
+            }
+        });
+        loading.setName("Logger-SparkIatMulLangClientApp-Thread");
+        loading.start();
+    }
+
+    /**
+     * 获取ws监听类
+     */
+    private static AbstractSparkIatWebSocketListener getWebSocketListener(AtomicBoolean isEnd) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd HH:mm:ss.SSS");
         Date dateBegin = new Date();
 
-        File file = new File(resourcePath + filePath);
         StringBuffer finalResult = new StringBuffer();
 
         // 存储流式返回结果的Map sn -> content
         Map<Integer, String> contentMap = new TreeMap<>();
-        AtomicBoolean isEnd = new AtomicBoolean(false);
-        sparkIatClient.send(file, new AbstractSparkIatWebSocketListener() {
+        return new AbstractSparkIatWebSocketListener() {
             @Override
             public void onSuccess(WebSocket webSocket, SparkIatResponse resp) {
                 // logger.debug("{}", JSON.toJSONString(resp));
@@ -133,7 +172,7 @@ public class SparkIatMulLangClientApp {
                             logger.info("最终识别结果 ==>{}", finalResult);
                         }
                         logger.info("本次识别sid ==>{}", resp.getHeader().getSid());
-                        sparkIatClient.closeWebsocket();
+                        webSocket.close(1000, "");
                         isEnd.set(Boolean.TRUE);
                         System.exit(0);
                     }
@@ -153,20 +192,18 @@ public class SparkIatMulLangClientApp {
                 logger.info("关闭连接,code是{},reason:{}", code, reason);
                 System.exit(0);
             }
-        });
-        // 多语种没有流式返回会开启线程动态打印日志
-        Thread loading = new Thread(() -> {
-            while (!isEnd.get()) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(2500);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                logger.info("音频识别中...");
-            }
-        });
-        loading.setName("Logger-SparkIatMulLangClientApp-Thread");
-        loading.start();
+        };
+    }
+
+    private static void play(File file) {
+        AudioPlayer audioPlayer = new AudioPlayer();
+        try {
+            audioPlayer.playFile(file);
+        } catch (Exception e) {
+            logger.error("播放音频异常: {}", e.getMessage(), e);
+        } finally {
+            audioPlayer.stop();
+        }
     }
 
     private static String getLastResult(Map<Integer, String> contentMap) {

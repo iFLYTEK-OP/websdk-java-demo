@@ -1,6 +1,7 @@
 package cn.xfyun.demo.speech;
 
 import cn.xfyun.config.PropertiesConfig;
+import cn.xfyun.util.MicrophoneAudioSender;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -140,6 +141,75 @@ public class RtasrClientApp {
 
         // 方式四：处理麦克风输入的音频数据
         // processAudioFromMicrophone();
+
+        // 方式五：用户自定义发送帧数据方式
+        // processAudioFromCustom();
+    }
+
+    /**
+     * 用户自定义发送帧数据方式
+     */
+    public static void processAudioFromCustom() {
+        finalResult = new StringBuffer();
+
+        // 麦克风工具类
+        MicrophoneAudioSender sender = new MicrophoneAudioSender((audioData, length) -> {
+            // 发送给 WebSocket
+            RTASR_CLIENT.sendMessage(audioData);
+        });
+
+        try (Scanner scanner = new Scanner(System.in)) {
+            logger.info("按回车开始实时转写...");
+            scanner.nextLine();
+
+            RTASR_CLIENT.start(new AbstractRtasrWebSocketListener() {
+
+                @Override
+                public void onSuccess(WebSocket webSocket, String text) {
+                    RtasrResponse response = JSONObject.parseObject(text, RtasrResponse.class);
+                    // finalResult为服务端已转写的完整语句，后面拼接服务端本次返回的当前语句的转写中间结果。
+                    String tempResult = handleAndReturnContent(response.getData());
+                    logger.info("实时转写结果：{}", finalResult + tempResult);
+                }
+
+                @Override
+                public void onFail(WebSocket webSocket, Throwable t, @Nullable Response response) {
+                    System.exit(0);
+                }
+
+                @Override
+                public void onBusinessFail(WebSocket webSocket, String text) {
+                    logger.error("业务异常，返回信息为：{}", text);
+                    System.exit(0);
+                }
+
+                @Override
+                public void onClosing(WebSocket webSocket, int code, String reason) {
+                    System.exit(0);
+                }
+
+                @Override
+                public void onClosed() {
+                    System.exit(0);
+                }
+
+                @Override
+                public void onOpen(WebSocket webSocket, Response response) {
+                    logger.info("连接成功");
+                }
+            });
+
+            sender.start();
+
+            logger.info("正在聆听，按回车结束转写...");
+            scanner.nextLine();
+            RTASR_CLIENT.sendEnd();
+        } catch (SignatureException e) {
+            logger.error("API签名验证失败", e);
+            throw new RuntimeException("服务鉴权失败", e);
+        } finally {
+            sender.stop();
+        }
     }
 
     /**
