@@ -41,7 +41,7 @@ public class ImageWordClientApp {
                 // 火车票识别      ImageWordEnum.TRAIN_TICKET
                 // 增值税发票识别  ImageWordEnum.INVOICE
                 // 多语种文字识别  ImageWordEnum.PRINTED_WORD
-                .Builder(appId, apiKey, apiSecret, ImageWordEnum.PRINTED_WORD)
+                .Builder(appId, apiKey, apiSecret, ImageWordEnum.COMMON_WORD)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] bytes = IoUtil.readBytes(inputStream);
