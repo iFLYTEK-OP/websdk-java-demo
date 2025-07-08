@@ -39,7 +39,7 @@ public class IntsigOcrClientApp {
                 // 营业执照识别           IntsigRecgEnum.BUSINESS_LICENSE
                 // 增值税发票识别         IntsigRecgEnum.INVOICE
                 // 印刷文字识别（多语种）  IntsigRecgEnum.RECOGNIZE_DOCUMENT
-                .Builder(appId, apiKey, IntsigRecgEnum.IDCARD)
+                .Builder(appId, apiKey, IntsigRecgEnum.COMMON_WORD)
                 .build();
         InputStream inputStream = new FileInputStream(new File(resourcePath + filePath));
         byte[] bytes = IoUtil.readBytes(inputStream);
