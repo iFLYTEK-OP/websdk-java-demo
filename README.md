@@ -79,6 +79,10 @@ sparkApiPassword、maasApiKey、maasResourceId、maasModelId
 | sinosecu通用票证识别                                         | SinoOCRClientApp               |
 | 通用票证识别                                                 | TicketOCRClientApp             |
 | 图片文档还原                                                 | PDRecClientApp                 |
+| 星火智能体                                                   | AgentClientApp                 |
+| 超拟人交互                                                   | OralChatClientApp              |
+| 星火助手                                                     | SparkAssistantClientApp        |
+| 大模型通用文档识别                                           | LLMOcrClientApp                |
 
 # 二、讯飞开放平台常用AI能力介绍与常用参数说明
 
