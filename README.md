@@ -83,6 +83,7 @@ sparkApiPassword、maasApiKey、maasResourceId、maasModelId
 | 超拟人交互                                                   | OralChatClientApp              |
 | 星火助手                                                     | SparkAssistantClientApp        |
 | 大模型通用文档识别                                           | LLMOcrClientApp                |
+| 超拟人个性化知识库交互                                       | AiUiKnowledgeClientApp         |
 
 # 二、讯飞开放平台常用AI能力介绍与常用参数说明
 

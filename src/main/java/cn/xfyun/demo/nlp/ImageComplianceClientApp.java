@@ -3,6 +3,7 @@ package cn.xfyun.demo.nlp;
 import cn.xfyun.api.ImageComplianceClient;
 import cn.xfyun.config.ModeType;
 import cn.xfyun.config.PropertiesConfig;
+import cn.xfyun.model.compliance.image.ImageCompParam;
 import cn.xfyun.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,11 @@ public class ImageComplianceClientApp {
                 .Builder(appId, apiKey, apiSecret)
                 .build();
 
-        String pathResp = correctionClient.send(FileUtil.fileToBase64(resourcePath + imagePath), ModeType.BASE64);
+        ImageCompParam param = ImageCompParam.builder()
+                .modeType(ModeType.BASE64)
+                .content(FileUtil.fileToBase64(resourcePath + imagePath))
+                .build();
+        String pathResp = correctionClient.send(param);
         logger.info("图片地址返回结果: {}", pathResp);
 
         // String urlResp = correctionClient.send(imageUrl, ModeType.LINK);

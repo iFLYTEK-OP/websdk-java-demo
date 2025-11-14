@@ -55,10 +55,13 @@ public class VoiceTrainClientApp {
                     .sex(SexEnum.FEMALE.getValue())
                     .ageGroup(AgeGroupEnum.YOUTH.getValue())
                     .thirdUser("")
+                    // 美化版本无需设置语种参数
                     .language("cn")
                     .resourceName("中文女发音人")
                     // .mosRatio(2.5f)
                     // .denoiseSwitch(1)
+                    // 美化版本开启
+                    // .engineVersion("omni_v1")
                     .build();
             String taskResp = client.createTask(createTaskParam);
             JsonObject taskObj = StringUtils.gson.fromJson(taskResp, JsonObject.class);
